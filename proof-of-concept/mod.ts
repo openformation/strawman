@@ -87,7 +87,11 @@ Yargs(Deno.args)
           const targetUrl = new URL(target.toString());
           targetUrl.pathname = requestUrl.pathname;
 
-          const snapshotFilename = path.join(output, requestUrl.pathname, `${requestEvent.request.method}.mock`);
+          const snapshotFilename = path.join(
+            output,
+            requestUrl.pathname,
+            `${requestEvent.request.method}.mock`
+          );
 
           if (await exists(snapshotFilename)) {
             const snapshot = await Deno.readTextFile(snapshotFilename);
@@ -106,6 +110,51 @@ ${await response.clone().text()}
             await Deno.writeTextFile(snapshotFilename, snapshot);
 
             requestEvent.respondWith(response);
+          }
+        }
+      }
+    }
+  )
+  .command(
+    "replay <output-dir>",
+    "strawman replays captured responses",
+    (yargs: ReturnType<typeof Yargs>) => {
+      return yargs
+        .option("prefix", {
+          alias: "p",
+          type: "string",
+          description: "The host URL that strawman is running on",
+        })
+        .positional("output-dir", {
+          describe: "The directory for saving snapshots",
+        });
+    },
+    async (argv: Arguments) => {
+      const prefix = new URL(argv.prefix);
+      const output = argv.outputDir as string;
+
+      const server = Deno.listen({ port: parseInt(prefix.port ?? "80", 10) });
+
+      console.info(`Strawman is listening at ${prefix}`);
+
+      for await (const connection of server) {
+        const http = Deno.serveHttp(connection);
+
+        for await (const requestEvent of http) {
+          const requestUrl = new URL(requestEvent.request.url);
+          const snapshotFilename = path.join(
+            output,
+            requestUrl.pathname,
+            `${requestEvent.request.method}.mock`
+          );
+
+          try {
+            const snapshot = await Deno.readTextFile(snapshotFilename);
+            requestEvent.respondWith(responseFromSnapshot(snapshot));
+          } catch (_err) {
+            requestEvent.respondWith(
+              new Response("Not found", { status: 404 })
+            );
           }
         }
       }

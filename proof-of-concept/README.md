@@ -24,3 +24,9 @@ curl http://localhost:8080/
 ```
 
 the response will be delivered from the saved snapshots.
+
+There is also a `replay` mode, in which only the captured responses will be emitted and no communication with the external service takes place:
+
+```sh
+deno run --allow-net --allow-read --allow-write --unstable mod.ts replay --prefix http://localhost:8080 out
+```
