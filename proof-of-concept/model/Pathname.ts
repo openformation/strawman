@@ -21,6 +21,8 @@
  *
  */
 
+import { assert } from "https://deno.land/std/testing/asserts.ts";
+
 const pathnameInstances = new Map<string, Pathname>();
 
 export class Pathname {
@@ -28,7 +30,17 @@ export class Pathname {
     public readonly props: {
       readonly value: string;
     }
-  ) {}
+  ) {
+    assert(props.value.startsWith("/"), "`Pathname` must start with a '/'");
+    assert(
+      props.value === "/" || !props.value.endsWith("/"),
+      "`Pathname` must not end with a '/'"
+    );
+
+    this.isRoot = this.props.value === "/";
+  }
+
+  public readonly isRoot: boolean;
 
   public static readonly fromString = (string: string) => {
     const pathname = pathnameInstances.get(string);
@@ -40,5 +52,39 @@ export class Pathname {
     pathnameInstances.set(string, newPathname);
 
     return newPathname;
+  };
+
+  public readonly isAncestorOf = (other: Pathname) =>
+    other.props.value.startsWith(this.props.value);
+
+  public readonly isParentOf = (other: Pathname) =>
+    this.isAncestorOf(other) &&
+    !other.props.value.substr(this.props.value.length + 1).includes("/");
+
+  public readonly parent = () => {
+    if (this.props.value === "/") {
+      return null;
+    }
+
+    const [, ...segments] = this.props.value.split("/");
+    segments.pop();
+
+    return Pathname.fromString(`/${segments.join("/")}`);
+  };
+
+  public readonly append = (segment: string) => {
+    assert(!segment.includes("/"), "segment must not contain '/'");
+    return this.props.value === "/"
+      ? Pathname.fromString(`/${segment}`)
+      : Pathname.fromString(`${this.props.value}/${segment}`);
+  };
+
+  public readonly basename = () => {
+    if (this.props.value === "/") {
+      return null;
+    }
+
+    const [, ...segments] = this.props.value.split("/");
+    return segments.pop()!;
   };
 }

@@ -21,14 +21,56 @@
  *
  */
 
+import { assert } from "https://deno.land/std/testing/asserts.ts";
+
 import { Pathname } from "./Pathname.ts";
 import { VirtualServiceTreeNode } from "./VirtualServiceTreeNode.ts";
 
 export class VirtualServiceTree {
   private constructor(
     public readonly props: {
-      rootNode: VirtualServiceTreeNode[];
-      nodesByPathName: Map<Pathname, VirtualServiceTreeNode>;
+      rootNode: VirtualServiceTreeNode;
     }
-  ) {}
+  ) {
+    assert(props.rootNode.isRoot, "`rootNode` must have pathname '/'");
+  }
+
+  public static readonly blank = () =>
+    VirtualServiceTree.fromRootNode(
+      VirtualServiceTreeNode.fromPathname(Pathname.fromString("/"))
+    );
+
+  public static readonly fromRootNode = (rootNode: VirtualServiceTreeNode) =>
+    new VirtualServiceTree({
+      rootNode,
+    });
+
+  public readonly withAddedNode = (
+    addedNode: VirtualServiceTreeNode
+  ): VirtualServiceTree => {
+    const parentPath = addedNode.parentPath;
+    if (parentPath) {
+      const parentNode =
+        this.props.rootNode.getDescendantAtPath(parentPath) ??
+        VirtualServiceTreeNode.fromPathname(parentPath);
+      return this.withAddedNode(parentNode.withAddedChildren([addedNode]));
+    }
+
+    return VirtualServiceTree.fromRootNode(addedNode);
+  };
+
+  public readonly withAddedNodes = (addedNodes: VirtualServiceTreeNode[]) =>
+    addedNodes.reduce(
+      (tree, addedNode) => tree.withAddedNode(addedNode),
+      this as VirtualServiceTree
+    );
+
+  public readonly getNodeAtPath = (path: string) =>
+    this.props.rootNode.getDescendantAtPath(Pathname.fromString(path));
+
+  public readonly hasNodeAtPath = (path: string) =>
+    this.props.rootNode.hasDescendantAtPath(Pathname.fromString(path));
+
+  public readonly hasNode = (node: VirtualServiceTreeNode) =>
+    this.props.rootNode.hasDescendant(node);
 }

@@ -43,7 +43,7 @@ export class Snapshot {
       if (!line) break;
 
       const [key, ...value] = line.split(":");
-      headers[key] = value.join(":");
+      headers[key] = value.join(":").trim();
     }
 
     return new Snapshot({
@@ -64,5 +64,5 @@ export class Snapshot {
       ),
       "",
       ...(this.props.body === null ? [] : [this.props.body, ""]),
-    ].join();
+    ].join("\n");
 }
