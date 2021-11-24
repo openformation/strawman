@@ -84,7 +84,7 @@ x-cache: HIT
 </div>
 </body>
 </html>
-`.trimStart();
+`.trim();
 
 Deno.test({
   name: "`Snapshot` can be created from fetch response",
@@ -171,7 +171,7 @@ Deno.test({
 </div>
 </body>
 </html>
-`
+`.trim()
     );
   },
 });
@@ -230,7 +230,7 @@ Deno.test({
 </div>
 </body>
 </html>
-`,
+`.trim(),
         {
           headers: {
             "accept-ranges": "bytes",

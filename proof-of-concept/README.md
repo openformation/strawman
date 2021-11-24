@@ -14,7 +14,6 @@ And then run:
 curl http://localhost:8080/
 ```
 
-
 You'll see, that an `out` directory is being created and populated with snapshots.
 
 The second time you run
@@ -29,4 +28,14 @@ There is also a `replay` mode, in which only the captured responses will be emit
 
 ```sh
 deno run --allow-net --allow-read --allow-write --unstable mod.ts replay --prefix http://localhost:8080 out
+```
+
+You can also try it with httpbin:
+
+```sh
+deno run --allow-net --allow-read --allow-write --unstable mod.ts capture --prefix http://localhost:8080 --target https://httpbin.org out
+```
+
+```
+curl -X POST "http://localhost:8080/post" -H  "accept: application/json"
 ```

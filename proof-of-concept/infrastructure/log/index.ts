@@ -21,18 +21,4 @@
  *
  */
 
-export const responseFromSnapshot = (snapshot: string): Response => {
-  const [headersAsString, ...body] = snapshot.split("\n\n");
-  const headers: Record<string, string> = {};
-
-  for (const line of headersAsString.split("\n")) {
-    if (!line) break;
-
-    const [key, ...value] = line.split(":");
-    headers[key] = value.join(":");
-  }
-
-  return new Response(body.join("\n\n"), {
-    headers,
-  });
-};
+export { makeLogVirtualServiceTreeEvents } from "./logVirtualServiceTreeEvents.ts";

@@ -21,12 +21,19 @@
  *
  */
 
-import { exists } from "https://deno.land/std/fs/mod.ts";
-import * as path from "https://deno.land/std/path/mod.ts";
 import Yargs from "https://deno.land/x/yargs/deno.ts";
 import { Arguments } from "https://deno.land/x/yargs/deno-types.ts";
 
-import { responseFromSnapshot } from "./responseFromSnapshot.ts";
+import {
+  createVirtualServiceTreeFromDirectory,
+  makeSaveVirtualServiceTreeToDirectory,
+} from "./infrastructure/fs/index.ts";
+import { makeLogVirtualServiceTreeEvents } from "./infrastructure/log/index.ts";
+import {
+  makeCaptureRequest,
+  makeReplayRequest,
+  printServiceTree,
+} from "./application/index.ts";
 
 console.log(
   "███████╗████████╗██████╗  █████╗ ██╗    ██╗███╗   ███╗ █████╗ ███╗   ██╗"
@@ -71,46 +78,38 @@ Yargs(Deno.args)
         });
     },
     async (argv: Arguments) => {
-      const prefix = new URL(argv.prefix);
-      const target = new URL(argv.target);
-      const output = argv.outputDir as string;
+      const strawmanServiceAddress = new URL(argv.prefix);
+      const pathToOutputDirectory = argv.outputDir as string;
+      const urlOfProxiedService = new URL(argv.target);
+      const virtualServiceTree = await createVirtualServiceTreeFromDirectory(
+        pathToOutputDirectory
+      );
+      const captureRequest = makeCaptureRequest({
+        urlOfProxiedService,
+        virtualServiceTree,
+        subscribers: [
+          makeSaveVirtualServiceTreeToDirectory({
+            pathToDirectory: pathToOutputDirectory,
+          }),
+          makeLogVirtualServiceTreeEvents({
+            logger: console,
+          }),
+        ],
+      });
 
-      const server = Deno.listen({ port: parseInt(prefix.port ?? "80", 10) });
+      printServiceTree(virtualServiceTree);
 
-      console.info(`Strawman is listening at ${prefix}`);
+      const server = Deno.listen({
+        port: parseInt(strawmanServiceAddress.port ?? "80", 10),
+      });
+
+      console.info(`Strawman is listening at ${strawmanServiceAddress}`);
 
       for await (const connection of server) {
         const http = Deno.serveHttp(connection);
 
         for await (const requestEvent of http) {
-          const requestUrl = new URL(requestEvent.request.url);
-          const targetUrl = new URL(target.toString());
-          targetUrl.pathname = requestUrl.pathname;
-
-          const snapshotFilename = path.join(
-            output,
-            requestUrl.pathname,
-            `${requestEvent.request.method}.mock`
-          );
-
-          if (await exists(snapshotFilename)) {
-            const snapshot = await Deno.readTextFile(snapshotFilename);
-            requestEvent.respondWith(responseFromSnapshot(snapshot));
-          } else {
-            Deno.mkdir(path.dirname(snapshotFilename), { recursive: true });
-            const response = await fetch(targetUrl.toString());
-            const snapshot = `
-${[...response.headers.entries()]
-  .map(([key, value]) => `${key}: ${value}`)
-  .join("\n")}
-
-${await response.clone().text()}
-`.trim();
-
-            await Deno.writeTextFile(snapshotFilename, snapshot);
-
-            requestEvent.respondWith(response);
-          }
+          requestEvent.respondWith(await captureRequest(requestEvent.request));
         }
       }
     }
@@ -130,32 +129,25 @@ ${await response.clone().text()}
         });
     },
     async (argv: Arguments) => {
-      const prefix = new URL(argv.prefix);
-      const output = argv.outputDir as string;
+      const strawmanServiceAddress = new URL(argv.prefix);
+      const pathToOutputDirectory = argv.outputDir as string;
+      const replayRequest = makeReplayRequest({
+        virtualServiceTree: await createVirtualServiceTreeFromDirectory(
+          pathToOutputDirectory
+        ),
+      });
 
-      const server = Deno.listen({ port: parseInt(prefix.port ?? "80", 10) });
+      const server = Deno.listen({
+        port: parseInt(strawmanServiceAddress.port ?? "80", 10),
+      });
 
-      console.info(`Strawman is listening at ${prefix}`);
+      console.info(`Strawman is listening at ${strawmanServiceAddress}`);
 
       for await (const connection of server) {
         const http = Deno.serveHttp(connection);
 
         for await (const requestEvent of http) {
-          const requestUrl = new URL(requestEvent.request.url);
-          const snapshotFilename = path.join(
-            output,
-            requestUrl.pathname,
-            `${requestEvent.request.method}.mock`
-          );
-
-          try {
-            const snapshot = await Deno.readTextFile(snapshotFilename);
-            requestEvent.respondWith(responseFromSnapshot(snapshot));
-          } catch (_err) {
-            requestEvent.respondWith(
-              new Response("Not found", { status: 404 })
-            );
-          }
+          requestEvent.respondWith(replayRequest(requestEvent.request));
         }
       }
     }

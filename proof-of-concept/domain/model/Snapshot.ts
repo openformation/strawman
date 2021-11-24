@@ -36,7 +36,7 @@ export class Snapshot {
     });
 
   public static readonly fromString = (snapshotAsString: string) => {
-    const [headersAsString, ...body] = snapshotAsString.split("\n\n");
+    const [headersAsString, ...body] = snapshotAsString.trim().split("\n\n");
     const headers: Record<string, string> = {};
 
     for (const line of headersAsString.split("\n")) {

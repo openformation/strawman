@@ -38,6 +38,18 @@ export class HTTPMethod {
   public static readonly TRACE = new HTTPMethod({ name: "TRACE" });
   public static readonly PATCH = new HTTPMethod({ name: "PATCH" });
 
+  public static readonly [Symbol.iterator] = function* () {
+    yield HTTPMethod.GET;
+    yield HTTPMethod.HEAD;
+    yield HTTPMethod.POST;
+    yield HTTPMethod.PUT;
+    yield HTTPMethod.DELETE;
+    yield HTTPMethod.CONNECT;
+    yield HTTPMethod.OPTIONS;
+    yield HTTPMethod.TRACE;
+    yield HTTPMethod.PATCH;
+  };
+
   public static readonly fromString = (string: string) => {
     switch (string.toUpperCase()) {
       case "GET":
@@ -62,6 +74,12 @@ export class HTTPMethod {
         throw UnknownHTTPMethod.duringStringConversion(string);
     }
   };
+
+  public static readonly ofRequest = (request: Request) => {
+    return HTTPMethod.fromString(request.method);
+  };
+
+  public readonly toString = () => this.props.name;
 }
 
 export class UnknownHTTPMethod extends Error {
