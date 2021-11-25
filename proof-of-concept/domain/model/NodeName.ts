@@ -28,19 +28,32 @@ export class NodeName {
     public readonly props: {
       readonly value: string;
     }
-  ) {}
+  ) {
+    if (props.value === "") {
+      throw NodeNameCouldNotBeCreated["because it is empty"]();
+    }
+  }
 
-  public static readonly fromString = (string: string) => {
-    const nodeName = instances[string];
+  public static readonly fromString = (nodeNameAsString: string) => {
+    const nodeName = instances[nodeNameAsString];
     if (nodeName) {
       return nodeName;
     }
 
-    const newNodeName = new NodeName({ value: string });
-    instances[string] = newNodeName;
+    const newNodeName = new NodeName({ value: nodeNameAsString });
+    instances[nodeNameAsString] = newNodeName;
 
     return newNodeName;
   };
 
   public readonly toString = () => this.props.value;
+}
+
+export class NodeNameCouldNotBeCreated extends Error {
+  private constructor(reason: string) {
+    super(`NodeName could not be created, because ${reason}`);
+  }
+
+  public static readonly ["because it is empty"] = () =>
+    new NodeNameCouldNotBeCreated("it is empty");
 }

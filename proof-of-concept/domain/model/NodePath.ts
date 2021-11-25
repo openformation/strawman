@@ -36,6 +36,10 @@ export class NodePath {
     });
 
   public static readonly fromString = (nodePathAsString: string) => {
+    if (nodePathAsString === "/") {
+      return new NodePath({ segments: [] });
+    }
+
     if (!nodePathAsString.startsWith("/")) {
       throw NodePathCouldNotBeCreated[
         "`nodePathAsString` must start with a '/'"
