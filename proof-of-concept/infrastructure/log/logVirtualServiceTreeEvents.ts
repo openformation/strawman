@@ -47,4 +47,9 @@ export const makeLogVirtualServiceTreeEvents = (deps: { logger: Console }) =>
       deps.logger.log(
         `[SNAPSHOT_WAS_REMOVED]: ${ev.payload.httpMethod.toString()} ${ev.payload.nodePath.toString()}`
       );
+    })
+    .on(EventType.TEMPLATE_WAS_MODIFIED, (ev) => {
+      deps.logger.log(
+        `[TEMPLATE_WAS_MODIFIED]: ${ev.payload.httpMethod.toString()} ${ev.payload.nodePath.toString()}`
+      );
     });

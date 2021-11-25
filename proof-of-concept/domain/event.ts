@@ -25,6 +25,7 @@ import { Node } from "./model/Node.ts";
 import { NodePath } from "./model/NodePath.ts";
 import { HTTPMethod } from "./model/HTTPMethod.ts";
 import { Snapshot } from "./model/Snapshot.ts";
+import { Template } from "./model/Template.ts";
 
 export enum EventType {
   TREE_WAS_CREATED,
@@ -34,6 +35,7 @@ export enum EventType {
   SNAPSHOT_WAS_ADDED,
   SNAPSHOT_WAS_REMOVED,
   SNAPSHOT_WAS_MODIFIED,
+  TEMPLATE_WAS_MODIFIED
 }
 
 export type Event =
@@ -82,5 +84,15 @@ export type Event =
         httpMethod: HTTPMethod;
         oldSnapshot: Snapshot;
         newSnapshot: Snapshot;
+      };
+    }
+  | {
+      type: EventType.TEMPLATE_WAS_MODIFIED;
+      payload: {
+        tree: Node;
+        nodePath: NodePath;
+        node: Node;
+        httpMethod: HTTPMethod;
+        template: Template
       };
     };

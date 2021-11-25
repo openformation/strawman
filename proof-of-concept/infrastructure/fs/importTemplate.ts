@@ -21,6 +21,20 @@
  *
  */
 
-export { createVirtualServiceTreeFromDirectory } from "./createVirtualServiceTreeFromDirectory.ts";
-export { makeSaveVirtualServiceTreeToDirectory } from "./saveVirtualServiceTreeToDirectory.ts";
-export { makeWatchForChanges } from "./watchForChanges.ts";
+import { Template } from "../../domain/model/Template.ts";
+
+import { fileUrlFromPath } from "./fileUrlFromPath.ts";
+
+export const importTemplate = async (pathToTemplateFile: string) => {
+  const { default: template } = await import(
+    `${fileUrlFromPath(pathToTemplateFile)}?now=${Date.now()}`
+  );
+
+  if (typeof template !== "function") {
+    throw new Error(
+      `Expected "${pathToTemplateFile}" to export a function, but got "${typeof template} instead"`
+    );
+  }
+
+  return Template.withCallback((request: Request) => template(request).trim());
+};

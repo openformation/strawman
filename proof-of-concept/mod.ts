@@ -135,9 +135,16 @@ Yargs(Deno.args)
       const strawmanServiceAddress = new URL(argv.prefix);
       const pathToOutputDirectory = argv.outputDir as string;
       const replayRequest = makeReplayRequest({
+        pathToDirectory: pathToOutputDirectory,
+        isEditingEnabled: true,
         virtualServiceTree: await createVirtualServiceTreeFromDirectory(
           pathToOutputDirectory
         ),
+        subscribers: [
+          makeLogVirtualServiceTreeEvents({
+            logger: console,
+          }),
+        ],
       });
 
       const server = Deno.listen({

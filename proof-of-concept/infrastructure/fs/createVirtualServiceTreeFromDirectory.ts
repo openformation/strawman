@@ -26,25 +26,11 @@ import * as path from "https://deno.land/std/path/mod.ts";
 import { Node } from "../../domain/model/Node.ts";
 import { NodeName } from "../../domain/model/NodeName.ts";
 import { HTTPMethod } from "../../domain/model/HTTPMethod.ts";
-import { Template } from "../../domain/model/Template.ts";
-
-const fileUrlFromPath = (pathToDirectory: string) => {
-  if (pathToDirectory.startsWith("file://")) {
-    return pathToDirectory;
-  }
-
-  if (pathToDirectory.startsWith("/")) {
-    return `file://${pathToDirectory}`;
-  }
-
-  return `file://${path.join(Deno.cwd(), pathToDirectory)}`;
-};
+import { importTemplate } from "./importTemplate.ts";
 
 export const createVirtualServiceTreeFromDirectory = async (
   pathToDirectory: string
 ): Promise<Node> => {
-  const fileUrlToDirectory = fileUrlFromPath(pathToDirectory);
-
   let rootNode = Node.root();
 
   for await (const file of Deno.readDir(pathToDirectory)) {
@@ -78,24 +64,9 @@ const createChildNodesAndSnapshotsFromDirEntry = async (
   }
 
   if (dirEntry.isFile && dirEntry.name.endsWith(".mock.ts")) {
-    const { default: template } = await import(
-      fileUrlFromPath(path.join(pathToDirectory, dirEntry.name))
-    );
-
-    if (typeof template !== "function") {
-      throw new Error(
-        `Expected "${path.join(
-          pathToDirectory,
-          dirEntry.name
-        )}" to export a function, but got "${typeof template} instead"`
-      );
-    }
-
-    const callback = (request: Request) => template(request).trim();
-
     parentNode = parentNode.withAddedTemplate(
       HTTPMethod.fromString(dirEntry.name.split(".")[0]!),
-      Template.withCallback(callback)
+      await importTemplate(path.join(pathToDirectory, dirEntry.name))
     );
   }
 

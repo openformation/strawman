@@ -21,20 +21,46 @@
  *
  */
 
+import { createEventBus, Subscriber } from "../framework/createEventBus.ts";
+
+import { Event } from "../domain/event.ts";
 import { HTTPMethod } from "../domain/model/HTTPMethod.ts";
 import { Node } from "../domain/model/Node.ts";
 import { getTemplate } from "../domain/service/getTemplate.ts";
 
+import { makeWatchForChanges } from "../infrastructure/fs/index.ts";
+
 export const makeReplayRequest = (deps: {
   virtualServiceTree: null | Node;
+  isEditingEnabled: boolean;
+  pathToDirectory: string;
+  subscribers: Subscriber<Event>[];
 }) => {
+  const eventBus = createEventBus<Event>();
+
+  deps.subscribers.forEach(eventBus.subscribe);
+
+  let virtualServiceTree = deps.virtualServiceTree;
+
+  if (deps.isEditingEnabled) {
+    const watchForChanges = makeWatchForChanges({
+      pathToDirectory: deps.pathToDirectory,
+      eventBus,
+      onUpdate: (newVirtualServiceTree: Node) => {
+        virtualServiceTree = newVirtualServiceTree;
+      },
+    });
+
+    watchForChanges(() => virtualServiceTree);
+  }
+
   return (request: Request) => {
     const httpMethod = HTTPMethod.ofRequest(request);
     const requestUrl = new URL(request.url);
 
-    if (deps.virtualServiceTree !== null) {
+    if (virtualServiceTree !== null) {
       const template = getTemplate(
-        deps.virtualServiceTree,
+        virtualServiceTree,
         requestUrl.pathname,
         httpMethod
       );

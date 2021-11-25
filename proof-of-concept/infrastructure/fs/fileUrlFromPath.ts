@@ -21,6 +21,16 @@
  *
  */
 
-export { createVirtualServiceTreeFromDirectory } from "./createVirtualServiceTreeFromDirectory.ts";
-export { makeSaveVirtualServiceTreeToDirectory } from "./saveVirtualServiceTreeToDirectory.ts";
-export { makeWatchForChanges } from "./watchForChanges.ts";
+import * as path from "https://deno.land/std/path/mod.ts";
+
+export const fileUrlFromPath = (pathToDirectory: string) => {
+  if(pathToDirectory.startsWith("file://")) {
+    return pathToDirectory;
+  }
+
+  if(pathToDirectory.startsWith("/")) {
+    return `file://${pathToDirectory}`;
+  }
+
+  return `file://${path.join(Deno.cwd(), pathToDirectory)}`;
+};
