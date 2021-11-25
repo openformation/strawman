@@ -55,34 +55,21 @@ export const makeSaveVirtualServiceTreeToDirectory = (deps: {
       );
     })
     .on(EventType.SNAPSHOT_WAS_ADDED, (ev) => {
-      const pathToSnapshot = path.join(
+      const pathToTemplateFile = path.join(
         deps.pathToDirectory,
         ev.payload.nodePath.toString(),
-        `${ev.payload.httpMethod.toString()}.mock`
+        `${ev.payload.httpMethod.toString()}.mock.ts`
       );
 
       jobQueue.addJob(() =>
-        Deno.writeTextFile(pathToSnapshot, ev.payload.snapshot.toString())
+        Deno.writeTextFile(
+          pathToTemplateFile,
+          [
+            "export default (_req: Request) => `",
+            ev.payload.snapshot.toString(),
+            "`;",
+          ].join("\n")
+        )
       );
-    })
-    .on(EventType.SNAPSHOT_WAS_MODIFIED, (ev) => {
-      const pathToSnapshot = path.join(
-        deps.pathToDirectory,
-        ev.payload.nodePath.toString(),
-        `${ev.payload.httpMethod.toString()}.mock`
-      );
-
-      jobQueue.addJob(() =>
-        Deno.writeTextFile(pathToSnapshot, ev.payload.newSnapshot.toString())
-      );
-    })
-    .on(EventType.SNAPSHOT_WAS_REMOVED, (ev) => {
-      const pathToSnapshot = path.join(
-        deps.pathToDirectory,
-        ev.payload.nodePath.toString(),
-        `${ev.payload.httpMethod.toString()}.mock`
-      );
-
-      jobQueue.addJob(() => Deno.remove(pathToSnapshot));
     });
 };

@@ -21,6 +21,8 @@
  *
  */
 
+import { assert } from "https://deno.land/std/testing/asserts.ts";
+
 import { createEventBus, Subscriber } from "../framework/createEventBus.ts";
 
 import { HTTPMethod } from "../domain/model/HTTPMethod.ts";
@@ -29,7 +31,7 @@ import { Node } from "../domain/model/Node.ts";
 import { Event } from "../domain/event.ts";
 import { makeCreateTree } from "../domain/service/createTree.ts";
 import { makeAddSnapshot } from "../domain/service/addSnapshot.ts";
-import { getSnapshot } from "../domain/service/getSnapshot.ts";
+import { getTemplate } from "../domain/service/getTemplate.ts";
 
 export const makeCaptureRequest = (deps: {
   urlOfProxiedService: URL;
@@ -52,16 +54,21 @@ export const makeCaptureRequest = (deps: {
 
     if (vst === null) vst = createTree();
 
-    let snapshot = getSnapshot(vst, requestUrl.pathname, httpMethod);
-    if (snapshot === null) {
-      snapshot = await Snapshot.fromFetchResponse(
+    let template = getTemplate(vst, requestUrl.pathname, httpMethod);
+    if (template === null) {
+      const snapshot = await Snapshot.fromFetchResponse(
         await fetch(proxyUrl.toString(), {
           method: request.method,
         })
       );
       vst = addSnapshot(vst, requestUrl.pathname, httpMethod, snapshot);
+      template = getTemplate(vst, requestUrl.pathname, httpMethod);
+      assert(template !== null);
     }
 
-    return snapshot.toFetchResponse();
+    return (
+      template.generateResponse(request) ??
+      new Response("Not found", { status: 404 })
+    );
   };
 };

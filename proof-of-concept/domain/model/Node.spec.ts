@@ -25,6 +25,7 @@ import { assertStrictEquals } from "https://deno.land/std/testing/asserts.ts";
 
 import { HTTPMethod } from "./HTTPMethod.ts";
 import { Snapshot } from "./Snapshot.ts";
+import { Template } from "./Template.ts";
 import { Node } from "./Node.ts";
 import { NodeName } from "./NodeName.ts";
 
@@ -46,29 +47,31 @@ Deno.test({
 });
 
 Deno.test({
-  name: "`VirtualServiceTreeNode` can contain snapshots",
+  name: "`VirtualServiceTreeNode` can contain templates",
   fn: async () => {
-    const snapshot = await Snapshot.fromFetchResponse(
-      new Response(JSON.stringify({ hello: "world" }), {
-        headers: {
-          "content-type": "application/json; charset=UTF-8",
-        },
-      })
+    const template = Template.fromSnapshot(
+      await Snapshot.fromFetchResponse(
+        new Response(JSON.stringify({ hello: "world" }), {
+          headers: {
+            "content-type": "application/json; charset=UTF-8",
+          },
+        })
+      )
     );
     const node = Node.withName(
       NodeName.fromString("someName")
-    ).withAddedSnapshot(HTTPMethod.GET, snapshot);
+    ).withAddedTemplate(HTTPMethod.GET, template);
 
-    assertStrictEquals(node.getSnapshotForHTTPMethod(HTTPMethod.GET), snapshot);
+    assertStrictEquals(node.getTemplateForHTTPMethod(HTTPMethod.GET), template);
   },
 });
 
 Deno.test({
-  name: "`VirtualServiceTreeNode.getSnapShotForHTTPMethod` returns null for unknown snapshots",
+  name: "`VirtualServiceTreeNode.getTemplateForHTTPMethod` returns null for unknown templates",
   fn: () => {
     const node = Node.withName(NodeName.fromString("someName"));
 
-    assertStrictEquals(node.getSnapshotForHTTPMethod(HTTPMethod.GET), null);
+    assertStrictEquals(node.getTemplateForHTTPMethod(HTTPMethod.GET), null);
   },
 });
 

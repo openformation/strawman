@@ -28,6 +28,7 @@ import { Node } from "../model/Node.ts";
 import { NodePath } from "../model/NodePath.ts";
 import { HTTPMethod } from "../model/HTTPMethod.ts";
 import { Snapshot } from "../model/Snapshot.ts";
+import { Template } from "../model/Template.ts";
 
 export const makeAddSnapshot =
   (deps: { eventBus: EventBus<Event> }) =>
@@ -53,7 +54,17 @@ export const makeAddSnapshot =
       ancestors.push(node);
     }
 
-    node = node.withAddedSnapshot(anHTTPMethod, aSnapShot);
+    const snapShotParentIsNew = newNodes.has(node);
+
+    newNodes.delete(node);
+    ancestors.pop();
+    node = node.withAddedTemplate(
+      anHTTPMethod,
+      Template.fromSnapshot(aSnapShot)
+    );
+
+    if (snapShotParentIsNew) newNodes.add(node);
+    ancestors.push(node);
 
     const nextRootNode = ancestors.reduceRight((childNode, parentNode) => {
       if (childNode === null) {

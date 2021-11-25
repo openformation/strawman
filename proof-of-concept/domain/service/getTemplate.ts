@@ -21,29 +21,22 @@
  *
  */
 
-import { HTTPMethod } from "../domain/model/HTTPMethod.ts";
-import { Node } from "../domain/model/Node.ts";
-import { getTemplate } from "../domain/service/getTemplate.ts";
+import { Node } from "../model/Node.ts";
+import { NodePath } from "../model/NodePath.ts";
+import { HTTPMethod } from "../model/HTTPMethod.ts";
 
-export const makeReplayRequest = (deps: {
-  virtualServiceTree: null | Node;
-}) => {
-  return (request: Request) => {
-    const httpMethod = HTTPMethod.ofRequest(request);
-    const requestUrl = new URL(request.url);
-
-    if (deps.virtualServiceTree !== null) {
-      const template = getTemplate(
-        deps.virtualServiceTree,
-        requestUrl.pathname,
-        httpMethod
-      );
-
-      if (template !== null) {
-        return template.generateResponse(request);
-      }
+export const getTemplate = (
+  aRootNode: Node,
+  aPath: string,
+  anHTTPMethod: HTTPMethod
+) => {
+  let node = aRootNode;
+  for (const nodeName of NodePath.fromString(aPath)) {
+    node = node.getChild(nodeName);
+    if (node === null) {
+      return null;
     }
+  }
 
-    return new Response("Not found", { status: 404 });
-  };
+  return node.getTemplateForHTTPMethod(anHTTPMethod);
 };

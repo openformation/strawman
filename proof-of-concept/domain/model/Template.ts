@@ -21,22 +21,22 @@
  *
  */
 
-import { Node } from "../model/Node.ts";
-import { NodePath } from "../model/NodePath.ts";
-import { HTTPMethod } from "../model/HTTPMethod.ts";
+import { Snapshot } from "./Snapshot.ts";
 
-export const getSnapshot = (
-  aRootNode: Node,
-  aPath: string,
-  anHTTPMethod: HTTPMethod
-) => {
-  let node = aRootNode;
-  for (const nodeName of NodePath.fromString(aPath)) {
-    node = node.getChild(nodeName);
-    if (node === null) {
-      return null;
+export class Template {
+  private constructor(
+    public readonly props: {
+      callback: (request: Request) => string | Promise<string>;
     }
-  }
+  ) {}
 
-  return node.getSnapshotForHTTPMethod(anHTTPMethod);
-};
+  public static readonly withCallback = (
+    callback: (request: Request) => string | Promise<string>
+  ) => new Template({ callback });
+
+  public static readonly fromSnapshot = (snapshot: Snapshot) =>
+    Template.withCallback(() => snapshot.toString());
+
+  public readonly generateResponse = async (request: Request) =>
+    Snapshot.fromString(await this.props.callback(request)).toFetchResponse();
+}

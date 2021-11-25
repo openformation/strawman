@@ -35,7 +35,7 @@ export const printServiceTree = (rootNode: Node) =>
     const methods: string[] = [];
 
     for (const httpMethod of HTTPMethod) {
-      const snapshot = node.getSnapshotForHTTPMethod(httpMethod);
+      const snapshot = node.getTemplateForHTTPMethod(httpMethod);
       if (snapshot) {
         methods.push(httpMethod.toString());
       }

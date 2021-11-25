@@ -24,13 +24,13 @@
 import { NodeName } from "./NodeName.ts";
 import { NodePath } from "./NodePath.ts";
 import { HTTPMethod } from "./HTTPMethod.ts";
-import { Snapshot } from "./Snapshot.ts";
+import { Template } from "./Template.ts";
 
 export class Node {
   private constructor(
     private readonly props: {
       name: null | NodeName;
-      snapshots: Record<string, Snapshot>;
+      templates: Record<string, Template>;
       children: Record<string, Node>;
     }
   ) {}
@@ -38,27 +38,27 @@ export class Node {
   public static readonly root = () =>
     new Node({
       name: null,
-      snapshots: {},
+      templates: {},
       children: {},
     });
 
   public static readonly withName = (name: NodeName) =>
     new Node({
       name,
-      snapshots: {},
+      templates: {},
       children: {},
     });
 
-  public readonly getSnapshotForHTTPMethod = (httpMethod: HTTPMethod) =>
-    this.props.snapshots[httpMethod.toString()] ?? null;
+  public readonly getTemplateForHTTPMethod = (httpMethod: HTTPMethod) =>
+    this.props.templates[httpMethod.toString()] ?? null;
 
-  public readonly withAddedSnapshot = (
+  public readonly withAddedTemplate = (
     httpMethod: HTTPMethod,
-    snapshot: Snapshot
+    template: Template
   ) =>
     new Node({
       ...this.props,
-      snapshots: { ...this.props.snapshots, [httpMethod.toString()]: snapshot },
+      templates: { ...this.props.templates, [httpMethod.toString()]: template },
     });
 
   public readonly getChild = (name: NodeName) =>

@@ -102,15 +102,18 @@ Yargs(Deno.args)
       const server = Deno.listen({
         port: parseInt(strawmanServiceAddress.port ?? "80", 10),
       });
-
-      console.info(`Strawman is listening at ${strawmanServiceAddress}`);
-
-      for await (const connection of server) {
+      const serveHttp = async (connection: Deno.Conn) => {
         const http = Deno.serveHttp(connection);
 
         for await (const requestEvent of http) {
           requestEvent.respondWith(await captureRequest(requestEvent.request));
         }
+      };
+
+      console.info(`Strawman is listening at ${strawmanServiceAddress}`);
+
+      for await (const connection of server) {
+        serveHttp(connection);
       }
     }
   )
@@ -140,15 +143,18 @@ Yargs(Deno.args)
       const server = Deno.listen({
         port: parseInt(strawmanServiceAddress.port ?? "80", 10),
       });
+      const serveHttp = async (connection: Deno.Conn) => {
+        const http = Deno.serveHttp(connection);
+
+        for await (const requestEvent of http) {
+          requestEvent.respondWith(await replayRequest(requestEvent.request));
+        }
+      };
 
       console.info(`Strawman is listening at ${strawmanServiceAddress}`);
 
       for await (const connection of server) {
-        const http = Deno.serveHttp(connection);
-
-        for await (const requestEvent of http) {
-          requestEvent.respondWith(replayRequest(requestEvent.request));
-        }
+        serveHttp(connection);
       }
     }
   )
