@@ -24,6 +24,8 @@
 export class Snapshot {
   private constructor(
     public readonly props: {
+      statusCode: number;
+      statusText: string;
       headers: Record<string, string>;
       body: null | string;
     }
@@ -31,12 +33,19 @@ export class Snapshot {
 
   public static readonly fromFetchResponse = async (response: Response) =>
     new Snapshot({
+      statusCode: response.status,
+      statusText: response.statusText,
       headers: Object.fromEntries(response.headers.entries()),
       body: await response.clone().text(),
     });
 
   public static readonly fromString = (snapshotAsString: string) => {
-    const [headersAsString, ...body] = snapshotAsString.trim().split("\n\n");
+    const [statusAsString, headersAsString, ...body] = snapshotAsString
+      .trim()
+      .split("\n\n");
+    const [statusCodeAsString, ...statusTextParts] = statusAsString.split(" ");
+    const statusCode = parseInt(statusCodeAsString, 10);
+    const statusText = statusTextParts.join(" ");
     const headers: Record<string, string> = {};
 
     for (const line of headersAsString.split("\n")) {
@@ -47,6 +56,8 @@ export class Snapshot {
     }
 
     return new Snapshot({
+      statusCode,
+      statusText,
       headers,
       body: body.length ? body.join("\n\n") : null,
     });
@@ -54,11 +65,15 @@ export class Snapshot {
 
   public readonly toFetchResponse = (): Response =>
     new Response(this.props.body, {
+      status: this.props.statusCode,
+      statusText: this.props.statusText,
       headers: this.props.headers,
     });
 
   public readonly toString = (): string =>
     [
+      `${this.props.statusCode} ${this.props.statusText}`,
+      "",
       ...Object.entries(this.props.headers).map(
         ([key, value]) => `${key}: ${value}`
       ),
