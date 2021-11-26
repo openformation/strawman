@@ -37,5 +37,9 @@ deno run --allow-net --allow-read --allow-write --unstable mod.ts capture --pref
 ```
 
 ```
+curl -X GET "http://localhost:8080/get" -H  "accept: application/json"
+```
+
+```
 curl -X POST "http://localhost:8080/post" -H  "accept: application/json"
 ```
