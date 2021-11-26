@@ -59,6 +59,7 @@ export const makeCaptureRequest = (deps: {
       const snapshot = await Snapshot.fromFetchResponse(
         await fetch(proxyUrl.toString(), {
           method: request.method,
+          headers: request.headers
         })
       );
       vst = addSnapshot(vst, requestUrl.pathname, httpMethod, snapshot);
