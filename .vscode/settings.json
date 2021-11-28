@@ -4,5 +4,11 @@
     "deno.unstable": true,
     "deno.suggest.imports.hosts": {
         "https://deno.land": true
-    }
+    },
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true,
+    "workbench.colorTheme": "GitHub Dark",
+    "git.autofetch": true,
+    "gitlens.showWelcomeOnInstall": false,
+    "[typescript]": { "editor.defaultFormatter": "denoland.vscode-deno" }
 }
