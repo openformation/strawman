@@ -21,20 +21,26 @@
  *
  */
 
-type Job = () => Promise<void>;
+type Job = () => void | Promise<void>;
 
 export const createJobQueue = () => {
   let isWorking = false;
   const jobs = new Set<Job>();
-  const addJob = async (job: Job) => {
+  const addJob = (job: Job) => {
     const wrappedJob = async () => {
       isWorking = true;
-      await job();
+      const task = job();
+      if (Promise.resolve(task) === task) {
+        await task;
+      }
       isWorking = false;
 
       for (const remainingJob of jobs) {
         jobs.delete(remainingJob);
-        await remainingJob();
+        const task = remainingJob();
+        if (Promise.resolve(task) === task) {
+          await task;
+        }
         break;
       }
     };
@@ -42,7 +48,7 @@ export const createJobQueue = () => {
     if (isWorking) {
       jobs.add(wrappedJob);
     } else {
-      await wrappedJob();
+      wrappedJob();
     }
   };
 
