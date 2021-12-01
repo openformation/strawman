@@ -33,9 +33,7 @@ export class HTTPMethod {
   public static readonly POST = new HTTPMethod({ name: "POST" });
   public static readonly PUT = new HTTPMethod({ name: "PUT" });
   public static readonly DELETE = new HTTPMethod({ name: "DELETE" });
-  public static readonly CONNECT = new HTTPMethod({ name: "CONNECT" });
   public static readonly OPTIONS = new HTTPMethod({ name: "OPTIONS" });
-  public static readonly TRACE = new HTTPMethod({ name: "TRACE" });
   public static readonly PATCH = new HTTPMethod({ name: "PATCH" });
 
   public static readonly [Symbol.iterator] = function* () {
@@ -44,9 +42,7 @@ export class HTTPMethod {
     yield HTTPMethod.POST;
     yield HTTPMethod.PUT;
     yield HTTPMethod.DELETE;
-    yield HTTPMethod.CONNECT;
     yield HTTPMethod.OPTIONS;
-    yield HTTPMethod.TRACE;
     yield HTTPMethod.PATCH;
   };
 
@@ -62,12 +58,8 @@ export class HTTPMethod {
         return HTTPMethod.PUT;
       case "DELETE":
         return HTTPMethod.DELETE;
-      case "CONNECT":
-        return HTTPMethod.CONNECT;
       case "OPTIONS":
         return HTTPMethod.OPTIONS;
-      case "TRACE":
-        return HTTPMethod.TRACE;
       case "PATCH":
         return HTTPMethod.PATCH;
       default:
