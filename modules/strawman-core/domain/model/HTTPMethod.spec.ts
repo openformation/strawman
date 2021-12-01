@@ -103,3 +103,21 @@ Deno.test({
     assertStrictEquals(HTTPMethod.PATCH.toString(), "PATCH");
   },
 });
+
+
+Deno.test({
+  name: "`HTTPMethod` is statically iterable",
+  fn: () => {
+    const [...httpMethods] = HTTPMethod;
+
+    assertStrictEquals(httpMethods.length, 7);
+
+    assertStrictEquals(httpMethods[0], HTTPMethod.GET);
+    assertStrictEquals(httpMethods[1], HTTPMethod.HEAD);
+    assertStrictEquals(httpMethods[2], HTTPMethod.POST);
+    assertStrictEquals(httpMethods[3], HTTPMethod.PUT);
+    assertStrictEquals(httpMethods[4], HTTPMethod.DELETE);
+    assertStrictEquals(httpMethods[5], HTTPMethod.OPTIONS);
+    assertStrictEquals(httpMethods[6], HTTPMethod.PATCH);
+  }
+})
