@@ -26,7 +26,9 @@ type EventShape = {
   payload: Record<string, unknown>;
 };
 
-export type Subscriber<E extends EventShape> = (event: E) => void | Promise<void>;
+export type Subscriber<E extends EventShape> = (
+  event: E
+) => void | Promise<void>;
 
 export type EventBus<E extends EventShape> = {
   dispatch: (event: E) => void;
