@@ -21,7 +21,11 @@
  *
  */
 
+import { createConstraints } from "../../../framework/createConstraints.ts";
+
 const instances: Record<string, NodeName> = {};
+
+export const NodeNameConstraints = createConstraints("NodeName");
 
 export class NodeName {
   private constructor(
@@ -29,9 +33,12 @@ export class NodeName {
       readonly value: string;
     }
   ) {
-    if (props.value === "") {
-      throw NodeNameCouldNotBeCreated["because it is empty"]();
-    }
+    NodeNameConstraints.check({
+      "must not be empty": this.props.value !== "",
+
+      "must only contain characters safe to be used as a URI path segment (as per https://datatracker.ietf.org/doc/html/rfc3986#appendix-A)":
+        /^[-_.~!$&'()*+,;=:@a-zA-Z0-9]+$/.test(this.props.value),
+    });
   }
 
   public static readonly fromString = (nodeNameAsString: string) => {
@@ -47,13 +54,4 @@ export class NodeName {
   };
 
   public readonly toString = () => this.props.value;
-}
-
-export class NodeNameCouldNotBeCreated extends Error {
-  private constructor(reason: string) {
-    super(`NodeName could not be created, because ${reason}`);
-  }
-
-  public static readonly ["because it is empty"] = () =>
-    new NodeNameCouldNotBeCreated("it is empty");
 }
