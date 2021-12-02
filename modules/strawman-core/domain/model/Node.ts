@@ -22,29 +22,19 @@
  */
 
 import { NodeName } from "./NodeName.ts";
-import { NodePath } from "./NodePath.ts";
 import { HTTPMethod } from "./HTTPMethod.ts";
 import { Template } from "./Template.ts";
 
 export class Node {
   private constructor(
     private readonly props: {
-      name: null | NodeName;
       templates: Record<string, Template>;
       children: Record<string, Node>;
     }
   ) {}
 
-  public static readonly root = () =>
+  public static readonly blank = () =>
     new Node({
-      name: null,
-      templates: {},
-      children: {},
-    });
-
-  public static readonly withName = (name: NodeName) =>
-    new Node({
-      name,
       templates: {},
       children: {},
     });
@@ -52,7 +42,7 @@ export class Node {
   public readonly getTemplateForHTTPMethod = (httpMethod: HTTPMethod) =>
     this.props.templates[httpMethod.toString()] ?? null;
 
-  public readonly withAddedTemplate = (
+  public readonly withTemplateForHTTPMethod = (
     httpMethod: HTTPMethod,
     template: Template
   ) =>
@@ -61,47 +51,15 @@ export class Node {
       templates: { ...this.props.templates, [httpMethod.toString()]: template },
     });
 
-  public readonly getChild = (name: NodeName) =>
-    this.props.children[name.toString()] ?? null;
+  public readonly getChild = (name: string) =>
+    this.props.children[name] ?? null;
 
-  public readonly withAddedChild = (addedChild: Node) => {
-    if (addedChild.props.name === null) {
-      AddChildConstraint["`addedChildNode` must not be root"]();
-    }
-
-    return new Node({
+  public readonly withAddedChild = (name: string, addedChild: Node) =>
+    new Node({
       ...this.props,
       children: {
         ...this.props.children,
-        [addedChild.props.name!.toString()]: addedChild,
+        [NodeName.fromString(name).toString()]: addedChild,
       },
     });
-  };
-
-  public readonly traverse = (
-    callback: (nodePath: NodePath, node: Node) => void
-  ) => {
-    const doTraverse = (node: Node, nodePath: NodePath) => {
-      callback(nodePath, node);
-
-      for (const [name, childNode] of Object.entries(node.props.children)) {
-        doTraverse(
-          childNode,
-          nodePath.withAppendedSegment(NodeName.fromString(name))
-        );
-      }
-    };
-
-    doTraverse(this, NodePath.fromNodeName(this.props.name));
-  };
-}
-
-export class AddChildConstraint extends Error {
-  private constructor(reason: string) {
-    super(`ChildNode could not be added, because ${reason}`);
-  }
-
-  public static readonly ["`addedChildNode` must not be root"] = () => {
-    throw new AddChildConstraint(`\`addedChildNode\` must not be root`);
-  };
 }

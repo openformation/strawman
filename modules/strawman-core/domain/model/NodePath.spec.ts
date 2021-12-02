@@ -56,16 +56,6 @@ Deno.test({
 });
 
 Deno.test({
-  name: "`NodePath` can be created from `NodeName`",
-  fn: () => {
-    assert(
-      NodePath.fromNodeName(NodeName.fromString("some-node-name")) instanceof
-        NodePath
-    );
-  },
-});
-
-Deno.test({
   name: "`NodePath` is iterable",
   fn: () => {
     const [...segments] = NodePath.fromString("/some/node/path");
@@ -100,9 +90,7 @@ Deno.test({
   name: "`NodePath` can be appended",
   fn: () => {
     const path = NodePath.fromString("/some/node/path");
-    const appendedPath = path.withAppendedSegment(
-      NodeName.fromString("appendix")
-    );
+    const appendedPath = path.append("appendix");
 
     assert(appendedPath instanceof NodePath);
     assert(appendedPath !== path);

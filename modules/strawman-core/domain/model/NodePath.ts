@@ -34,10 +34,7 @@ export class NodePath {
     }
   ) {}
 
-  public static readonly fromNodeName = (nodeName: null | NodeName) =>
-    new NodePath({
-      segments: nodeName === null ? [] : [nodeName],
-    });
+  public static readonly root = new NodePath({ segments: [] });
 
   public static readonly fromString = (nodePathAsString: string) => {
     if (nodePathAsString === "/") {
@@ -65,31 +62,11 @@ export class NodePath {
       }
     })(this);
 
-  public readonly withAppendedSegment = (segment: NodeName) =>
+  public readonly append = (segment: string) =>
     new NodePath({
-      segments: [...this.props.segments, segment],
+      segments: [...this.props.segments, NodeName.fromString(segment)],
     });
 
   public readonly toString = () =>
     `/${this.props.segments.map((segment) => segment.toString()).join("/")}`;
-}
-
-export class NodePathCouldNotBeCreated extends Error {
-  private constructor(reason: string) {
-    super(`NodePath could not be created, because ${reason}`);
-  }
-
-  public static readonly ["`nodePathAsString` must start with a '/'"] = (
-    attemptedValue: string
-  ) =>
-    new NodePathCouldNotBeCreated(
-      `\`nodePathAsString\` "${attemptedValue}" must start with a "/"`
-    );
-
-  public static readonly ["`nodePathAsString` must not end with a '/'"] = (
-    attemptedValue: string
-  ) =>
-    new NodePathCouldNotBeCreated(
-      `\`nodePathAsString\` "${attemptedValue}" must not end with a "/"`
-    );
 }
