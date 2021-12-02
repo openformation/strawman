@@ -78,6 +78,6 @@ export class Snapshot {
         ([key, value]) => `${key}: ${value}`
       ),
       "",
-      ...(this.props.body === null ? [] : [this.props.body, ""]),
+      ...(this.props.body === null ? [] : [this.props.body]),
     ].join("\n");
 }

@@ -21,7 +21,10 @@
  *
  */
 
-import { assertEquals } from "../../../../deps-dev/asserts.ts";
+import {
+  assertEquals,
+  assertObjectMatch,
+} from "../../../../deps-dev/asserts.ts";
 
 import { Snapshot } from "./Snapshot.ts";
 
@@ -193,6 +196,35 @@ Deno.test({
 });
 
 Deno.test({
+  name: "`Snapshot` fromFetchResponse -> toFetchResponse is tautological",
+  fn: async () => {
+    const response = new Response(JSON.stringify({ hello: "world" }), {
+      headers: {
+        "content-type": "application/json; charset=UTF-8",
+      },
+    });
+    const snapshot = await Snapshot.fromFetchResponse(response);
+
+    assertObjectMatch(
+      Object(snapshot.toFetchResponse()),
+
+      // Why do we have to create a new response object for assertion?
+      //   response.clone() modifies the source response object. This rather
+      //   surprising behavior unfortunately makes it impossible to compare the
+      //   newly created response from `toFetchResponse` with the original
+      //   value.
+      Object(
+        new Response(JSON.stringify({ hello: "world" }), {
+          headers: {
+            "content-type": "application/json; charset=UTF-8",
+          },
+        })
+      )
+    );
+  },
+});
+
+Deno.test({
   name: "`Snapshot` can be converted to string",
   fn: async () => {
     const response = new Response(JSON.stringify({ hello: "world" }), {
@@ -210,8 +242,17 @@ Deno.test({
 
 content-type: application/json; charset=UTF-8
 
-{"hello":"world"}
-`
+{"hello":"world"}`
+    );
+  },
+});
+
+Deno.test({
+  name: "`Snapshot` fromString -> toString is tautological",
+  fn: () => {
+    assertEquals(
+      Snapshot.fromString(snapshotAsString).toString(),
+      snapshotAsString
     );
   },
 });
