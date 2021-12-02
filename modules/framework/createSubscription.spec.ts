@@ -30,33 +30,36 @@ Deno.test({
   name: "provides a convenient way to create subscriptions for message catalogs",
   fn: () => {
     type MessageCatalog =
-      | { type: 0; payload: { foo: string } }
-      | { type: 1; payload: { bar: string } };
+      | { type: "SomethingHappened"; payload: { foo: string } }
+      | { type: "SomethingElseHappened"; payload: { bar: string } };
 
     const eventBus = createEventBus<MessageCatalog>();
 
     const handlers = [spy(), spy()] as const;
     const subscription = createSubscription<MessageCatalog>()
-      .on(0, handlers[0])
-      .on(1, handlers[1]);
+      .on("SomethingHappened", handlers[0])
+      .on("SomethingElseHappened", handlers[1]);
 
     eventBus.subscribe(subscription);
 
     assertSpyCalls(handlers[0], 0);
     assertSpyCalls(handlers[1], 0);
 
-    eventBus.dispatch({ type: 0, payload: { foo: "bar" } });
+    eventBus.dispatch({ type: "SomethingHappened", payload: { foo: "bar" } });
     assertSpyCalls(handlers[0], 1);
     assertSpyCalls(handlers[1], 0);
     assertSpyCall(handlers[0], 0, {
-      args: [{ type: 0, payload: { foo: "bar" } }],
+      args: [{ type: "SomethingHappened", payload: { foo: "bar" } }],
     });
 
-    eventBus.dispatch({ type: 1, payload: { bar: "foo" } });
+    eventBus.dispatch({
+      type: "SomethingElseHappened",
+      payload: { bar: "foo" },
+    });
     assertSpyCalls(handlers[0], 1);
     assertSpyCalls(handlers[1], 1);
     assertSpyCall(handlers[1], 0, {
-      args: [{ type: 1, payload: { bar: "foo" } }],
+      args: [{ type: "SomethingElseHappened", payload: { bar: "foo" } }],
     });
   },
 });

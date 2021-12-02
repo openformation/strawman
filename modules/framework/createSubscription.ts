@@ -22,7 +22,7 @@
  */
 
 type EventShape<
-  Type extends number = number,
+  Type extends string = string,
   Payload extends Record<string, unknown> = Record<string, unknown>
 > = {
   type: Type;

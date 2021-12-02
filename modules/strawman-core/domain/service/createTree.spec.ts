@@ -21,23 +21,39 @@
  *
  */
 
-import { spy, assertSpyCall } from "../../deps-dev/mock.ts";
+import { assert } from "../../../../deps-dev/asserts.ts";
+import { spy, assertSpyCall } from "../../../../deps-dev/mock.ts";
 
-import { createEventBus } from "./createEventBus.ts";
+import { createEventBus } from "../../../framework/createEventBus.ts";
+
+import { DomainEvent } from "../events/DomainEvent.ts";
+import { Node } from "../model/Node.ts";
+
+import { makeCreateTree } from "./createTree.ts";
 
 Deno.test({
-  name: "creates an event bus that allows to dispatch and subscribe to events",
+  name: "`createTree` creates a rootNode",
   fn: () => {
-    const eventBus = createEventBus();
+    const eventBus = createEventBus<DomainEvent>();
+    const createTree = makeCreateTree({ eventBus });
+
+    assert(createTree() instanceof Node);
+  },
+});
+
+Deno.test({
+  name: "`createTree` emits a TreeWasCreated event",
+  fn: () => {
+    const eventBus = createEventBus<DomainEvent>();
     const subscriber = spy();
-    const event = {
-      type: "SomethingHappened",
-      payload: { foo: "bar" },
-    };
+
+    const createTree = makeCreateTree({ eventBus });
 
     eventBus.subscribe(subscriber);
-    eventBus.dispatch(event);
+    const rootNode = createTree();
 
-    assertSpyCall(subscriber, 0, { args: [event] });
+    assertSpyCall(subscriber, 0, {
+      args: [DomainEvent.TreeWasCreated({ rootNode })],
+    });
   },
 });

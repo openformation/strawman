@@ -21,18 +21,11 @@
  *
  */
 
-import type { EventBus } from "../../framework/createEventBus.ts";
+import { TreeWasCreated } from "./TreeWasCreated.ts";
 
-import { Event, EventType } from "../event.ts";
-import { Node } from "../model/Node.ts";
+export type DomainEvent =
+  | TreeWasCreated;
 
-export const makeCreateTree = (deps: { eventBus: EventBus<Event> }) => () => {
-  const tree = Node.root();
-
-  deps.eventBus.dispatch({
-    type: EventType.TREE_WAS_CREATED,
-    payload: { tree },
-  });
-
-  return tree;
-};
+export const DomainEvent = {
+  TreeWasCreated,
+} as const;

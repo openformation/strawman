@@ -21,28 +21,12 @@
  *
  */
 
-type EventShape = {
-  type: string;
-  payload: Record<string, unknown>;
-};
+import { Node } from "../model/Node.ts";
 
-export type Subscriber<E extends EventShape> = (
-  event: E
-) => void | Promise<void>;
+export type TreeWasCreated = ReturnType<typeof TreeWasCreated>;
 
-export type EventBus<E extends EventShape> = {
-  dispatch: (event: E) => void;
-  subscribe: (subscriber: Subscriber<E>) => () => void;
-};
-
-export const createEventBus = <E extends EventShape>(): EventBus<E> => {
-  const subscribers = new Set<Subscriber<E>>();
-  const dispatch = (event: E) =>
-    subscribers.forEach((subscriber) => subscriber(event));
-  const subscribe = (subscriber: Subscriber<E>) => {
-    subscribers.add(subscriber);
-    return () => subscribers.delete(subscriber);
-  };
-
-  return { dispatch, subscribe };
-};
+export const TreeWasCreated = (payload: { rootNode: Node }) =>
+  ({
+    type: "http://openformation.io/strawman/TreeWasCreated",
+    payload,
+  } as const);

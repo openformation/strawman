@@ -21,28 +21,16 @@
  *
  */
 
-type EventShape = {
-  type: string;
-  payload: Record<string, unknown>;
-};
+import type { EventBus } from "../../../framework/createEventBus.ts";
 
-export type Subscriber<E extends EventShape> = (
-  event: E
-) => void | Promise<void>;
+import { DomainEvent } from "../events/DomainEvent.ts";
+import { Node } from "../model/Node.ts";
 
-export type EventBus<E extends EventShape> = {
-  dispatch: (event: E) => void;
-  subscribe: (subscriber: Subscriber<E>) => () => void;
-};
+export const makeCreateTree =
+  (deps: { eventBus: EventBus<DomainEvent> }) => () => {
+    const rootNode = Node.blank();
 
-export const createEventBus = <E extends EventShape>(): EventBus<E> => {
-  const subscribers = new Set<Subscriber<E>>();
-  const dispatch = (event: E) =>
-    subscribers.forEach((subscriber) => subscriber(event));
-  const subscribe = (subscriber: Subscriber<E>) => {
-    subscribers.add(subscriber);
-    return () => subscribers.delete(subscriber);
+    deps.eventBus.dispatch(DomainEvent.TreeWasCreated({ rootNode }));
+
+    return rootNode;
   };
-
-  return { dispatch, subscribe };
-};
