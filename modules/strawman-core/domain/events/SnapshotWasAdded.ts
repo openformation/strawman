@@ -21,20 +21,21 @@
  *
  */
 
-import { NodeWasAdded } from "./NodeWasAdded.ts";
-import { SnapshotWasAdded } from "./SnapshotWasAdded.ts";
-import { TemplateWasModified } from "./TemplateWasModified.ts";
-import { TreeWasCreated } from "./TreeWasCreated.ts";
+import { HTTPMethod } from "../model/HTTPMethod.ts";
+import { Snapshot } from "../model/Snapshot.ts";
+import { NodePath } from "../model/NodePath.ts";
+import { Node } from "../model/Node.ts";
 
-export type DomainEvent =
-  | NodeWasAdded
-  | SnapshotWasAdded
-  | TemplateWasModified
-  | TreeWasCreated;
+export type SnapshotWasAdded = ReturnType<typeof SnapshotWasAdded>;
 
-export const DomainEvent = {
-  NodeWasAdded,
-  SnapshotWasAdded,
-  TemplateWasModified,
-  TreeWasCreated,
-} as const;
+export const SnapshotWasAdded = (payload: {
+  rootNode: Node;
+  path: NodePath;
+  parentNode: Node;
+  httpMethod: HTTPMethod;
+  addedSnaphot: Snapshot;
+}) =>
+  ({
+    type: "http://openformation.io/strawman/SnapshotWasAdded",
+    payload,
+  } as const);

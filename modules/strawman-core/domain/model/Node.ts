@@ -51,15 +51,15 @@ export class Node {
       templates: { ...this.props.templates, [httpMethod.toString()]: template },
     });
 
-  public readonly getChild = (name: string) =>
-    this.props.children[name] ?? null;
+  public readonly getChild = (nodeName: NodeName): null | Node =>
+    this.props.children[nodeName.toString()] ?? null;
 
-  public readonly withAddedChild = (name: string, addedChild: Node) =>
+  public readonly withAddedChild = (nodeName: NodeName, addedChild: Node) =>
     new Node({
       ...this.props,
       children: {
         ...this.props.children,
-        [NodeName.fromString(name).toString()]: addedChild,
+        [nodeName.toString()]: addedChild,
       },
     });
 }

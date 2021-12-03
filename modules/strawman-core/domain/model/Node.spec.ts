@@ -26,6 +26,7 @@ import { assert, assertStrictEquals } from "../../../../deps-dev/asserts.ts";
 import { HTTPMethod } from "./HTTPMethod.ts";
 import { Snapshot } from "./Snapshot.ts";
 import { Template } from "./Template.ts";
+import { NodeName } from "./NodeName.ts";
 import { Node } from "./Node.ts";
 
 Deno.test({
@@ -73,19 +74,22 @@ Deno.test({
     const child2 = Node.blank();
     const child3 = Node.blank();
     const node = Node.blank()
-      .withAddedChild("child1", child1)
-      .withAddedChild("child2", child2)
-      .withAddedChild("child3", child3);
+      .withAddedChild(NodeName.fromString("child1"), child1)
+      .withAddedChild(NodeName.fromString("child2"), child2)
+      .withAddedChild(NodeName.fromString("child3"), child3);
 
-    assertStrictEquals(node.getChild("child1"), child1);
-    assertStrictEquals(node.getChild("child2"), child2);
-    assertStrictEquals(node.getChild("child3"), child3);
+    assertStrictEquals(node.getChild(NodeName.fromString("child1")), child1);
+    assertStrictEquals(node.getChild(NodeName.fromString("child2")), child2);
+    assertStrictEquals(node.getChild(NodeName.fromString("child3")), child3);
   },
 });
 
 Deno.test({
   name: "`Node.getChild` returns null for unknown children",
   fn: () => {
-    assertStrictEquals(Node.blank().getChild("someChild"), null);
+    assertStrictEquals(
+      Node.blank().getChild(NodeName.fromString("someChild")),
+      null
+    );
   },
 });

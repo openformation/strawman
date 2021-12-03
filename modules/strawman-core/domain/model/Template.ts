@@ -25,7 +25,7 @@ import { Snapshot } from "./Snapshot.ts";
 
 export class Template {
   private constructor(
-    public readonly props: {
+    private readonly props: {
       callback: (request: Request) => string | Promise<string>;
     }
   ) {}

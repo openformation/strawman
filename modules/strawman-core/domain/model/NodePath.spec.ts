@@ -39,6 +39,24 @@ Deno.test({
 });
 
 Deno.test({
+  name: "`NodePath` is a flyweight",
+  fn: () => {
+    assert(NodePath.fromString("/") === NodePath.root);
+    assert(
+      NodePath.root.append(NodeName.fromString("some")) ===
+        NodePath.fromString("/some")
+    );
+    assert(
+      NodePath.fromString("/some/path") === NodePath.fromString("/some/path")
+    );
+    assert(
+      NodePath.fromString("/some/path") ===
+        NodePath.fromString("/some").append(NodeName.fromString("path"))
+    );
+  },
+});
+
+Deno.test({
   name: "`NodePath` (as string) must start with a '/'",
   fn: () => {
     assertThrows(() => NodePath.fromString("some-path"));
@@ -90,7 +108,7 @@ Deno.test({
   name: "`NodePath` can be appended",
   fn: () => {
     const path = NodePath.fromString("/some/node/path");
-    const appendedPath = path.append("appendix");
+    const appendedPath = path.append(NodeName.fromString("appendix"));
 
     assert(appendedPath instanceof NodePath);
     assert(appendedPath !== path);

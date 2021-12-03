@@ -25,6 +25,8 @@ import { NodeName } from "./NodeName.ts";
 
 import { createConstraints } from "../../../framework/createConstraints.ts";
 
+const instances: Record<string, NodePath> = {};
+
 export const NodePathConstraints = createConstraints("NodePath");
 
 export class NodePath {
@@ -38,7 +40,11 @@ export class NodePath {
 
   public static readonly fromString = (nodePathAsString: string) => {
     if (nodePathAsString === "/") {
-      return new NodePath({ segments: [] });
+      return NodePath.root;
+    }
+
+    if (instances[nodePathAsString]) {
+      return instances[nodePathAsString];
     }
 
     NodePathConstraints.check({
@@ -50,9 +56,11 @@ export class NodePath {
 
     const [, ...segmentsAsStrings] = nodePathAsString.split("/");
 
-    return new NodePath({
+    instances[nodePathAsString] = new NodePath({
       segments: segmentsAsStrings.map(NodeName.fromString),
     });
+
+    return instances[nodePathAsString];
   };
 
   public readonly [Symbol.iterator] = () =>
@@ -62,10 +70,22 @@ export class NodePath {
       }
     })(this);
 
-  public readonly append = (segment: string) =>
-    new NodePath({
-      segments: [...this.props.segments, NodeName.fromString(segment)],
+  public readonly append = (segment: NodeName) => {
+    const path =
+      this === NodePath.root
+        ? `/${segment.toString()}`
+        : `${this.toString()}/${segment.toString()}`;
+
+    if (instances[path]) {
+      return instances[path];
+    }
+
+    instances[path] = new NodePath({
+      segments: [...this.props.segments, segment],
     });
+
+    return instances[path];
+  };
 
   public readonly toString = () =>
     `/${this.props.segments.map((segment) => segment.toString()).join("/")}`;
