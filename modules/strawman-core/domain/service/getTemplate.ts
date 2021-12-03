@@ -25,18 +25,18 @@ import { Node } from "../model/Node.ts";
 import { NodePath } from "../model/NodePath.ts";
 import { HTTPMethod } from "../model/HTTPMethod.ts";
 
-export const getTemplate = (
-  aRootNode: Node,
-  aPath: string,
-  anHTTPMethod: HTTPMethod
-) => {
-  let node = aRootNode;
-  for (const nodeName of NodePath.fromString(aPath)) {
+export const getTemplate = (given: {
+  aRootNode: Node;
+  aPath: NodePath;
+  anHTTPMethod: HTTPMethod;
+}) => {
+  let node: null | Node = given.aRootNode;
+  for (const nodeName of given.aPath) {
     node = node.getChild(nodeName);
     if (node === null) {
       return null;
     }
   }
 
-  return node.getTemplateForHTTPMethod(anHTTPMethod);
+  return node.getTemplateForHTTPMethod(given.anHTTPMethod);
 };
