@@ -27,11 +27,15 @@ export const createConstraints = (concept: string) =>
       super(`Constraint violation for ${concept}: ${constraintDescription}`);
     }
 
-    public static readonly check = (constraints: Record<string, boolean>) => {
+    public static readonly check = (
+      constraints: Record<string, boolean>
+    ): constraints is Record<string, true> => {
       for (const [description, isFulfilled] of Object.entries(constraints)) {
         if (!isFulfilled) {
           throw new Constraints(description);
         }
       }
+
+      return true;
     };
   };
