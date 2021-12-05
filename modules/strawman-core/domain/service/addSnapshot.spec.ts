@@ -21,7 +21,7 @@
  *
  */
 
-import { assertObjectMatch } from "../../../../deps-dev/asserts.ts";
+import { assertResponseEquals } from "../../../../deps-dev/asserts.ts";
 import { spy, assertSpyCall } from "../../../../deps-dev/mock.ts";
 
 import { createEventBus } from "../../../framework/createEventBus.ts";
@@ -59,13 +59,11 @@ Deno.test({
       aSnapShot: snapshot,
     });
 
-    assertObjectMatch(
-      Object(
-        await nextRootNode
-          .getTemplateForHTTPMethod(HTTPMethod.GET)
-          .generateResponse(new Request("https://example.com"))
-      ),
-      Object(snapshot.toFetchResponse())
+    await assertResponseEquals(
+      await nextRootNode
+        .getTemplateForHTTPMethod(HTTPMethod.GET)
+        .generateResponse(new Request("https://example.com")),
+      snapshot.toFetchResponse()
     );
   },
 });
@@ -94,16 +92,14 @@ Deno.test({
       aSnapShot: snapshot,
     });
 
-    assertObjectMatch(
-      Object(
-        await nextRootNode
-          .getChild(NodeName.fromString("some"))
-          ?.getChild(NodeName.fromString("deep"))
-          ?.getChild(NodeName.fromString("path"))
-          ?.getTemplateForHTTPMethod(HTTPMethod.GET)
-          .generateResponse(new Request("https://example.com"))
-      ),
-      Object(snapshot.toFetchResponse())
+    await assertResponseEquals(
+      await nextRootNode
+        .getChild(NodeName.fromString("some"))
+        ?.getChild(NodeName.fromString("deep"))
+        ?.getChild(NodeName.fromString("path"))
+        ?.getTemplateForHTTPMethod(HTTPMethod.GET)
+        .generateResponse(new Request("https://example.com"))!,
+      snapshot.toFetchResponse()
     );
   },
 });

@@ -23,7 +23,7 @@
 
 export class Snapshot {
   private constructor(
-    public readonly props: {
+    private readonly props: {
       statusCode: number;
       statusText: string;
       headers: Record<string, string>;

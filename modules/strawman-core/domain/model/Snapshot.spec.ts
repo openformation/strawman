@@ -22,8 +22,9 @@
  */
 
 import {
+  assert,
   assertEquals,
-  assertObjectMatch,
+  assertResponseEquals,
 } from "../../../../deps-dev/asserts.ts";
 
 import { Snapshot } from "./Snapshot.ts";
@@ -101,11 +102,7 @@ Deno.test({
     });
     const snapshot = await Snapshot.fromFetchResponse(response);
 
-    assertEquals(snapshot.props.headers, {
-      "content-type": "application/json; charset=UTF-8",
-    });
-
-    assertEquals(snapshot.props.body, '{"hello":"world"}');
+    assert(snapshot instanceof Snapshot);
   },
 });
 
@@ -114,16 +111,16 @@ Deno.test({
   fn: () => {
     const snapshot = Snapshot.fromString(snapshotAsString);
 
-    assertEquals(snapshot instanceof Snapshot, true);
+    assert(snapshot instanceof Snapshot);
   },
 });
 
 Deno.test({
   name: "`Snapshot` can be converted into a fetch response",
-  fn: () => {
+  fn: async () => {
     const snapshot = Snapshot.fromString(snapshotAsString);
 
-    assertEquals(
+    await assertResponseEquals(
       snapshot.toFetchResponse(),
       new Response(
         `<!doctype html>
@@ -205,22 +202,7 @@ Deno.test({
     });
     const snapshot = await Snapshot.fromFetchResponse(response);
 
-    assertObjectMatch(
-      Object(snapshot.toFetchResponse()),
-
-      // Why do we have to create a new response object for assertion?
-      //   response.clone() modifies the source response object. This rather
-      //   surprising behavior unfortunately makes it impossible to compare the
-      //   newly created response from `toFetchResponse` with the original
-      //   value.
-      Object(
-        new Response(JSON.stringify({ hello: "world" }), {
-          headers: {
-            "content-type": "application/json; charset=UTF-8",
-          },
-        })
-      )
-    );
+    await assertResponseEquals(snapshot.toFetchResponse(), response);
   },
 });
 

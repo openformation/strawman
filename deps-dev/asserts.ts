@@ -28,3 +28,19 @@ export {
   assertObjectMatch,
   assertThrows,
 } from "https://deno.land/std@0.116.0/testing/asserts.ts";
+
+import { assertEquals } from "https://deno.land/std@0.116.0/testing/asserts.ts";
+
+export const assertResponseEquals = async (
+  actual: Response,
+  expected: Response
+) => {
+  assertEquals(actual.url, expected.url);
+  assertEquals(actual.status, expected.status);
+  assertEquals(actual.statusText, expected.statusText);
+  assertEquals([...actual.headers.entries()], [...expected.headers.entries()]);
+  assertEquals(
+    [...(await actual.clone().text())],
+    [...(await expected.clone().text())]
+  );
+};

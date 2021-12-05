@@ -21,7 +21,7 @@
  *
  */
 
-import { assert, assertObjectMatch } from "../../../../deps-dev/asserts.ts";
+import { assert, assertResponseEquals } from "../../../../deps-dev/asserts.ts";
 
 import { Snapshot } from "./Snapshot.ts";
 import { Template } from "./Template.ts";
@@ -62,25 +62,9 @@ Deno.test({
     const snapshot = await Snapshot.fromFetchResponse(response);
     const template = Template.fromSnapshot(snapshot);
 
-    assertObjectMatch(
-      Object(
-        await template.generateResponse(new Request("https://example.com"))
-      ),
-
-      // Why do we have to create a new response object for assertion?
-      //   response.clone() (called in Snapshot.fromFetchResponse) modifies the
-      //   source response object. This rather surprising behavior
-      //   unfortunately makes it impossible to compare the newly created
-      //   response from `generateResponse` with the original value.
-      Object(
-        new Response(JSON.stringify({ foo: "bar" }), {
-          status: 200,
-          statusText: "OK",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        })
-      )
+    await assertResponseEquals(
+      await template.generateResponse(new Request("https://example.com")),
+      response
     );
   },
 });
@@ -104,35 +88,27 @@ Deno.test({
       ].join("\n");
     });
 
-    assertObjectMatch(
-      Object(
-        await template.generateResponse(new Request("https://example.com/"))
-      ),
-      Object(
-        new Response("Don't know who you are...", {
-          status: 404,
-          statusText: "Not Found",
-          headers: {
-            "content-type": "text/plain",
-          },
-        })
-      )
+    await assertResponseEquals(
+      await template.generateResponse(new Request("https://example.com/")),
+      new Response("Don't know who you are...", {
+        status: 404,
+        statusText: "Not Found",
+        headers: {
+          "content-type": "text/plain",
+        },
+      })
     );
-    assertObjectMatch(
-      Object(
-        await template.generateResponse(
-          new Request("https://example.com/?name=Leia")
-        )
+    await assertResponseEquals(
+      await template.generateResponse(
+        new Request("https://example.com/?name=Leia")
       ),
-      Object(
-        new Response("May the force be with you, Leia!", {
-          status: 200,
-          statusText: "OK",
-          headers: {
-            "content-type": "text/plain",
-          },
-        })
-      )
+      new Response("May the force be with you, Leia!", {
+        status: 200,
+        statusText: "OK",
+        headers: {
+          "content-type": "text/plain",
+        },
+      })
     );
   },
 });
