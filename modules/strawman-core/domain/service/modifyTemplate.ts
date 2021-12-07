@@ -33,15 +33,17 @@ import { Template } from "../model/Template.ts";
 
 export const ModifyTemplateConstraints = createConstraints("ModifyTemplate");
 
+export type IModifyTemplate = (given: {
+  aRootNode: Node;
+  aPath: NodePath;
+  anHTTPMethod: HTTPMethod;
+  theModifiedTemplate: Template;
+}) => Node;
+
 export const makeModifyTemplate = (deps: {
   eventBus: EventBus<DomainEvent>;
-}) => {
-  const modifyTemplate = (given: {
-    aRootNode: Node;
-    aPath: NodePath;
-    anHTTPMethod: HTTPMethod;
-    theModifiedTemplate: Template;
-  }) => {
+}): IModifyTemplate => {
+  const modifyTemplate: IModifyTemplate = (given) => {
     const { anHTTPMethod: theHTTPMethod, theModifiedTemplate } = given;
 
     let theParentNode: null | Node = null;

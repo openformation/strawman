@@ -21,6 +21,8 @@
  *
  */
 
-export { createVirtualServiceTreeFromDirectory } from "./createVirtualServiceTreeFromDirectory.ts";
-export { makeSaveVirtualServiceTreeToDirectory } from "./saveVirtualServiceTreeToDirectory.ts";
-export { makeWatchForChanges } from "./watchForChanges.ts";
+export type Ref<T> = { current: null | T };
+
+export const createRef = <T>(initialValue: null | T = null): Ref<T> => ({
+  current: initialValue,
+});
