@@ -21,43 +21,33 @@
  *
  */
 
-import * as path from "https://deno.land/std/path/mod.ts";
+import * as path from "../../../../deps/path.ts";
 
-import { createSubscription } from "../../framework/createSubscription.ts";
-import { createJobQueue } from "../../framework/createJobQueue.ts";
+import { createSubscription } from "../../../framework/createSubscription.ts";
+import { createJobQueue } from "../../../framework/createJobQueue.ts";
 
-import { Event, EventType } from "../../domain/event.ts";
+import { DomainEvent } from "../../domain/events/DomainEvent.ts";
 
 export const makeSaveVirtualServiceTreeToDirectory = (deps: {
   pathToDirectory: string;
 }) => {
   const jobQueue = createJobQueue();
 
-  return createSubscription<Event>()
-    .on(EventType.NODE_WAS_ADDED, (ev) => {
+  return createSubscription<DomainEvent>()
+    .on("http://openformation.io/strawman/NodeWasAdded", (ev) => {
       const pathToNodeDirectory = path.join(
         deps.pathToDirectory,
-        ev.payload.nodePath.toString()
+        ev.payload.path.toString()
       );
 
       jobQueue.addJob(() =>
         Deno.mkdir(pathToNodeDirectory, { recursive: true })
       );
     })
-    .on(EventType.NODE_WAS_REMOVED, (ev) => {
-      const pathToNodeDirectory = path.join(
-        deps.pathToDirectory,
-        ev.payload.nodePath.toString()
-      );
-
-      jobQueue.addJob(() =>
-        Deno.remove(pathToNodeDirectory, { recursive: true })
-      );
-    })
-    .on(EventType.SNAPSHOT_WAS_ADDED, (ev) => {
+    .on("http://openformation.io/strawman/SnapshotWasAdded", (ev) => {
       const pathToTemplateFile = path.join(
         deps.pathToDirectory,
-        ev.payload.nodePath.toString(),
+        ev.payload.path.toString(),
         `${ev.payload.httpMethod.toString()}.mock.ts`
       );
 
@@ -65,8 +55,12 @@ export const makeSaveVirtualServiceTreeToDirectory = (deps: {
         Deno.writeTextFile(
           pathToTemplateFile,
           [
-            "export default (_req: Request) => `",
-            ev.payload.snapshot.toString(),
+            "export default (req: Request) => {",
+            "  return response(req);",
+            "};",
+            "",
+            "const response = (_req: Request) => `",
+            ev.payload.addedSnaphot.toString(),
             "`;",
           ].join("\n")
         )

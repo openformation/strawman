@@ -2,4 +2,4 @@
 
 shopt -s globstar
 
-deno test --allow-read=$(pwd) modules/**/*.spec.ts
+deno test --allow-read=$(pwd) --allow-write=$(pwd) --unstable modules/**/*.spec.ts
