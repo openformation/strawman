@@ -42,7 +42,7 @@ type RCaptureRequest =
       value: Response;
     };
 
-type ICaptureRequest = (given: {
+export type ICaptureRequest = (given: {
   aRequest: Request;
 }) => Promise<RCaptureRequest>;
 
@@ -92,7 +92,9 @@ export const makeCaptureRequest = (deps: {
         aPath: nodePathFromRequest,
         anHTTPMethod: httpMethodFromRequest,
       });
+    }
 
+    if (template === null) {
       return {
         type: "ERROR: Template could not be written",
         value: new Response("Template could not be written", { status: 500 }),

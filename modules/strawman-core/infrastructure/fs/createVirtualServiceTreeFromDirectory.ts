@@ -24,7 +24,7 @@
 import * as path from "../../../../deps/path.ts";
 
 import { castError } from "../../../framework/castError.ts";
-import { failure, success } from "../../../framework/result.ts";
+import { Failure, failure, success } from "../../../framework/result.ts";
 
 import { Node } from "../../domain/model/Node.ts";
 import { NodeName } from "../../domain/model/NodeName.ts";
@@ -38,7 +38,7 @@ export type RCreateVirtualServiceTreeFromDirectory =
     }
   | {
       type: "ERROR: Template could not be imported";
-      cause: RImportTemplate;
+      cause: Failure<RImportTemplate>;
     }
   | {
       type: "ERROR: Directory could not be read";

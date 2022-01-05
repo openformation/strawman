@@ -18,7 +18,6 @@
 
 /**
  * @author Wilhelm Behncke <wilhelm.behncke@openformation.io>
- *
  */
 
 import { createRef } from "../../framework/createRef.ts";
@@ -34,16 +33,18 @@ import { makeModifyTemplate } from "../domain/service/modifyTemplate.ts";
 import { makeWatchForChanges } from "../infrastructure/fs/watchForChanges.ts";
 import { makeImportTemplate } from "../infrastructure/fs/importTemplate.ts";
 
-type IReplayRequest = (given: { aRequest: Request }) => Promise<RReplayRequest>;
+export type IReplayRequest = (
+  given: { aRequest: Request },
+) => Promise<RReplayRequest>;
 type RReplayRequest =
   | {
-      type: "SUCCESS: Request was replayed from template";
-      value: Response;
-    }
+    type: "SUCCESS: Request was replayed from template";
+    value: Response;
+  }
   | {
-      type: "ERROR: Template was not found";
-      value: Response;
-    };
+    type: "ERROR: Template was not found";
+    value: Response;
+  };
 
 export const makeReplayRequest = (deps: {
   virtualServiceTree: null | Node;
