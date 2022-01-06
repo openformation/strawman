@@ -18,11 +18,10 @@
 
 /**
  * @author Wilhelm Behncke <wilhelm.behncke@openformation.io>
- *
  */
 
 import { assert } from "../../../../deps-dev/asserts.ts";
-import { spy, assertSpyCall } from "../../../../deps-dev/mock.ts";
+import { assertSpyCall, spy } from "../../../../deps-dev/mock.ts";
 import * as path from "../../../../deps/path.ts";
 
 import { createEventBus } from "../../../framework/createEventBus.ts";
@@ -41,7 +40,7 @@ import { makeWatchForChanges } from "./watchForChanges.ts";
 Deno.test("`watchForChanges`", async (t) => {
   const pathToDirectory = path.join(
     path.dirname(path.fromFileUrl(import.meta.url)),
-    "__tmp__"
+    "__tmp__",
   );
   await Deno.mkdir(pathToDirectory, { recursive: true });
 
@@ -51,7 +50,7 @@ Deno.test("`watchForChanges`", async (t) => {
   await Deno.writeTextFile(path.join(pathToDirectory, "GET.mock.ts"), "");
   await Deno.writeTextFile(
     path.join(pathToDirectory, "some/deeper/path/POST.mock.ts"),
-    ""
+    "",
   );
 
   await t.step("it recognizes changes to existing template files", async () => {
@@ -64,26 +63,22 @@ Deno.test("`watchForChanges`", async (t) => {
             NodeName.fromString("path"),
             Node.blank().withTemplateForHTTPMethod(
               HTTPMethod.POST,
-              Template.withCallback(() => "")
-            )
-          )
-        )
+              Template.withCallback(() => ""),
+            ),
+          ),
+        ),
       )
       .withTemplateForHTTPMethod(
         HTTPMethod.GET,
-        Template.withCallback(() => "")
+        Template.withCallback(() => ""),
       );
     const virtualServiceTreeRef = createRef<Node>(tree);
     const template = Template.withCallback(() => "");
-    const importTemplate = () =>
-      Promise.resolve({
-        type: "SUCCESS: Template was imported",
-        value: template,
-      } as const);
+    const importTemplate = () => Promise.resolve(template);
     const modifyTemplate = spy(
       makeModifyTemplate({
         eventBus: createEventBus<DomainEvent>(),
-      })
+      }),
     );
     const watchForChanges = makeWatchForChanges({
       pathToDirectory,
@@ -98,7 +93,7 @@ Deno.test("`watchForChanges`", async (t) => {
 
     await Deno.writeTextFile(
       path.join(pathToDirectory, "GET.mock.ts"),
-      "Some Change 1"
+      "Some Change 1",
     );
 
     await new Promise((resolve) => setTimeout(resolve, 500));
@@ -107,7 +102,7 @@ Deno.test("`watchForChanges`", async (t) => {
 
     await Deno.writeTextFile(
       path.join(pathToDirectory, "some/deeper/path/POST.mock.ts"),
-      "Some change 2"
+      "Some change 2",
     );
 
     endWatchForChanges();
@@ -116,7 +111,7 @@ Deno.test("`watchForChanges`", async (t) => {
 
     assert(virtualServiceTreeRef.current !== tree);
     assert(
-      virtualServiceTreeRef.current !== virtualServiceTreeAfterFirstChange
+      virtualServiceTreeRef.current !== virtualServiceTreeAfterFirstChange,
     );
     assertSpyCall(modifyTemplate, 0, {
       args: [

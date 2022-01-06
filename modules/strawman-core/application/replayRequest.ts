@@ -22,6 +22,7 @@
 
 import { createRef } from "../../framework/createRef.ts";
 import { createEventBus, Subscriber } from "../../framework/createEventBus.ts";
+import { Exception } from "../../framework/exception.ts";
 
 import { DomainEvent } from "../domain/events/DomainEvent.ts";
 import { HTTPMethod } from "../domain/model/HTTPMethod.ts";
@@ -33,25 +34,14 @@ import { makeModifyTemplate } from "../domain/service/modifyTemplate.ts";
 import { makeWatchForChanges } from "../infrastructure/fs/watchForChanges.ts";
 import { makeImportTemplate } from "../infrastructure/fs/importTemplate.ts";
 
-export type IReplayRequest = (
-  given: { aRequest: Request },
-) => Promise<RReplayRequest>;
-type RReplayRequest =
-  | {
-    type: "SUCCESS: Request was replayed from template";
-    value: Response;
-  }
-  | {
-    type: "ERROR: Template was not found";
-    value: Response;
-  };
+export type IReplayRequest = ReturnType<typeof makeReplayRequest>;
 
 export const makeReplayRequest = (deps: {
   virtualServiceTree: null | Node;
   isEditingEnabled: boolean;
   pathToDirectory: string;
   subscribers: Subscriber<DomainEvent>[];
-}): IReplayRequest => {
+}) => {
   const virtualServiceTreeRef = createRef(deps.virtualServiceTree);
   const eventBus = createEventBus<DomainEvent>();
 
@@ -71,7 +61,7 @@ export const makeReplayRequest = (deps: {
     watchForChanges();
   }
 
-  const replayRequest: IReplayRequest = async (given) => {
+  const replayRequest = async (given: { aRequest: Request }) => {
     const httpMethodFromRequest = HTTPMethod.ofRequest(given.aRequest);
     const requestUrl = new URL(given.aRequest.url);
 
@@ -83,17 +73,14 @@ export const makeReplayRequest = (deps: {
       });
 
       if (template !== null) {
-        return {
-          type: "SUCCESS: Request was replayed from template",
-          value: await template.generateResponse(given.aRequest),
-        };
+        return await template.generateResponse(given.aRequest);
       }
     }
 
-    return {
-      type: "ERROR: Template was not found",
-      value: new Response("Not found", { status: 404 }),
-    };
+    throw Exception.raise({
+      code: 1641473907,
+      message: "Template was not found.",
+    });
   };
 
   return replayRequest;

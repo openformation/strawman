@@ -18,13 +18,11 @@
 
 /**
  * @author Wilhelm Behncke <wilhelm.behncke@openformation.io>
- *
  */
 
 import * as path from "../../../../deps/path.ts";
 
 import { Ref } from "../../../framework/createRef.ts";
-import { success } from "../../../framework/result.ts";
 
 import { NodePath } from "../../domain/model/NodePath.ts";
 import { Node } from "../../domain/model/Node.ts";
@@ -64,9 +62,8 @@ export const makeWatchForChanges = (deps: {
       const dirname = path.dirname(relativePath);
       const basename = path.basename(relativePath, ".mock.ts");
 
-      const importTemplateResult = await deps.importTemplate(filePath);
-
-      for (const { value: template } of success(importTemplateResult)) {
+      try {
+        const template = await deps.importTemplate(filePath);
         if (deps.virtualServiceTreeRef.current !== null) {
           deps.virtualServiceTreeRef.current = deps.modifyTemplate({
             aRootNode: deps.virtualServiceTreeRef.current,
@@ -75,6 +72,8 @@ export const makeWatchForChanges = (deps: {
             theModifiedTemplate: template,
           });
         }
+      } catch (err) {
+        console.error(err);
       }
     }
 

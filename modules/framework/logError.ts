@@ -1,6 +1,6 @@
 /**
  * strawman - A Deno-based service virtualization solution
- * Copyright (C) 2021 Open Formation GmbH
+ * Copyright (C) 2022 Open Formation GmbH
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -18,30 +18,24 @@
 
 /**
  * @author Wilhelm Behncke <wilhelm.behncke@openformation.io>
- *
  */
 
-export {
-  assert,
-  assertEquals,
-  assertStrictEquals,
-  assertObjectMatch,
-  assertThrows,
-  assertRejects
-} from "https://deno.land/std@0.116.0/testing/asserts.ts";
+import { Exception } from "./exception.ts";
 
-import { assertEquals } from "https://deno.land/std@0.116.0/testing/asserts.ts";
+export const logError = (error: Error) => {
+  const logErrorRecursively = (error: Error, indentation: number) => {
+    console.error(`${"  ".repeat(indentation)} → ${error.message}`);
 
-export const assertResponseEquals = async (
-  actual: Response,
-  expected: Response
-) => {
-  assertEquals(actual.url, expected.url);
-  assertEquals(actual.status, expected.status);
-  assertEquals(actual.statusText, expected.statusText);
-  assertEquals([...actual.headers.entries()], [...expected.headers.entries()]);
-  assertEquals(
-    [...(await actual.clone().text())],
-    [...(await expected.clone().text())]
-  );
+    if (error.cause) {
+      logErrorRecursively(error.cause, indentation + 1);
+    } else if (error.stack) {
+      error.stack.split("\n").slice(error instanceof Exception ? 2 : 1).forEach(
+        (line) => {
+          console.error(`${"  ".repeat(indentation)}   ${line}`);
+        },
+      );
+    }
+  };
+
+  logErrorRecursively(error, 1);
 };

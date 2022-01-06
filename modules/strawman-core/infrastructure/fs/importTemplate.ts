@@ -18,51 +18,38 @@
 
 /**
  * @author Wilhelm Behncke <wilhelm.behncke@openformation.io>
- *
  */
+
+import { Exception } from "../../../framework/exception.ts";
 
 import { Template } from "../../domain/model/Template.ts";
 
 import { fileUrlFromPath } from "./fileUrlFromPath.ts";
 
-export type RImportTemplate =
-  | {
-      type: "SUCCESS: Template was imported";
-      value: Template;
-    }
-  | {
-      type: "ERROR: Template was not a function";
-      message: string;
-    };
-
-export type IImportTemplate = (
-  pathToTemplateFile: string
-) => Promise<RImportTemplate>;
+export type IImportTemplate = ReturnType<typeof makeImportTemplate>;
 
 export const makeImportTemplate = (deps: {
   import: (pathToScriptFile: string) => Promise<{ default: unknown }>;
   timer: typeof Date.now;
-}): IImportTemplate => {
-  const importTemplate: IImportTemplate = async (
-    pathToTemplateFile: string
+}) => {
+  const importTemplate = async (
+    pathToTemplateFile: string,
   ) => {
     const { default: template } = await deps.import(
-      `${fileUrlFromPath(pathToTemplateFile)}?now=${deps.timer()}`
+      `${fileUrlFromPath(pathToTemplateFile)}?now=${deps.timer()}`,
     );
 
     if (typeof template !== "function") {
-      return {
-        type: "ERROR: Template was not a function",
-        message: `Expected "${pathToTemplateFile}" to export a function, but got "${typeof template}" instead.`,
-      };
+      throw Exception.raise({
+        code: 1641391455,
+        message:
+          `Expected "${pathToTemplateFile}" to export a function, but got "${typeof template}" instead.`,
+      });
     }
 
-    return {
-      type: "SUCCESS: Template was imported",
-      value: Template.withCallback((request: Request) =>
-        template(request).trim()
-      ),
-    };
+    return Template.withCallback((request: Request) =>
+      template(request).trim()
+    );
   };
 
   return importTemplate;

@@ -1,6 +1,6 @@
 /**
  * strawman - A Deno-based service virtualization solution
- * Copyright (C) 2021 Open Formation GmbH
+ * Copyright (C) 2022 Open Formation GmbH
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -20,25 +20,42 @@
  * @author Wilhelm Behncke <wilhelm.behncke@openformation.io>
  */
 
-type ResultShape<M extends string = string> =
-  | { type: `SUCCESS: ${M}` }
-  | { type: `ERROR: ${M}` };
-
-export type Failure<R extends ResultShape<string>> = R extends
-  ResultShape<infer M> ? Extract<R, { type: `ERROR: ${M}` }> : never;
-
-export const success = function* <M extends string, R extends ResultShape<M>>(
-  res: R,
-) {
-  if (res.type.startsWith("SUCCESS: ")) {
-    yield res as Extract<R, { type: `SUCCESS: ${M}` }>;
+export class Exception<Meta = undefined> extends Error {
+  private constructor(
+    private readonly props: {
+      code: number;
+      message: string;
+      meta?: Meta;
+      cause?: Error;
+    },
+  ) {
+    super(`#${props.code}: ${props.message}`, {
+      cause: props.cause,
+    });
   }
-};
 
-export const failure = function* <M extends string, R extends ResultShape<M>>(
-  res: R,
-) {
-  if (res.type.startsWith("ERROR: ")) {
-    yield res as Extract<R, { type: `ERROR: ${M}` }>;
+  public static raise = <
+    Meta = undefined,
+  >(props: {
+    code: number;
+    message: string;
+    meta?: Meta;
+    cause?: Error;
+  }) => new Exception<Meta>(props);
+
+  public get code() {
+    return this.props.code;
   }
-};
+
+  public get message() {
+    return this.props.message;
+  }
+
+  public get meta() {
+    return this.props.meta;
+  }
+
+  public get cause() {
+    return this.props.cause;
+  }
+}

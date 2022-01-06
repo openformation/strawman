@@ -22,8 +22,8 @@
 
 import { parse } from "../../../deps/flags.ts";
 
-import { failure, success } from "../../framework/result.ts";
 import { castError } from "../../framework/castError.ts";
+import { logError } from "../../framework/logError.ts";
 
 import {
   ICaptureRequest,
@@ -98,9 +98,8 @@ const createSnapshotDirectoryIfNotExists = async (given: CommandParameters) => {
     console.error(
       `[☓] Directory "${given.thePathToSnapshotDirectory}" could not be created`,
     );
-    console.error(
-      `  → ${castError(err).message}`,
-    );
+    logError(castError(err));
+    Deno.exit(1);
   }
 };
 
@@ -115,31 +114,17 @@ const initializeVirtualServiceTree = async (given: CommandParameters) => {
 
   await createSnapshotDirectoryIfNotExists(given);
 
-  const result = await createVirtualServiceTreeFromDirectory(
-    given.thePathToSnapshotDirectory,
-  );
-
-  for (const { value: virtualServiceTree } of success(result)) {
-    return virtualServiceTree;
+  try {
+    return await createVirtualServiceTreeFromDirectory(
+      given.thePathToSnapshotDirectory,
+    );
+  } catch (err) {
+    console.error(
+      `[☓] Virtual Service Tree could not be created`,
+    );
+    logError(castError(err));
+    Deno.exit(1);
   }
-
-  for (const error of failure(result)) {
-    switch (error.type) {
-      default:
-      case "ERROR: Directory could not be read":
-        console.error(
-          `[☓] Directory "${given.thePathToSnapshotDirectory}" could not be read`,
-        );
-        break;
-      case "ERROR: Template could not be imported":
-        console.error(
-          `[☓] Virtual Service Tree could not be created: Template could not be imported`,
-        );
-        break;
-    }
-  }
-
-  Deno.exit(1);
 };
 
 const startCaptureServer = async (
@@ -185,35 +170,30 @@ const serveHttp = async (
       }`,
     );
 
-    const captureRequestResult = await given.aCaptureRequestHandler({
-      aRequest: requestEvent.request,
-    });
+    try {
+      const response = await given.aCaptureRequestHandler({
+        aRequest: requestEvent.request,
+      });
 
-    for (const { value: response } of success(captureRequestResult)) {
       requestEvent.respondWith(response).then(() => {
         console.info(
           `[➚] [${requestEvent.request.method}] [${response.status}] ${
             new URL(requestEvent.request.url).pathname
           }`,
         );
-        console.error("  → Template was written");
+        console.info("  → Template was written");
       });
-    }
+    } catch (err) {
+      const error = castError(err);
 
-    for (const error of failure(captureRequestResult)) {
       console.error(
         `[☓] [${requestEvent.request.method}] ${
           new URL(requestEvent.request.url).pathname
         }`,
       );
+      logError(error);
 
-      switch (error.type) {
-        default:
-        case "ERROR: Template could not be written": {
-          console.error("  → Template could not be written");
-          requestEvent.respondWith(error.value);
-        }
-      }
+      requestEvent.respondWith(new Response(error.message, { status: 500 }));
     }
   }
 };

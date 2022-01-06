@@ -18,10 +18,10 @@
 
 /**
  * @author Wilhelm Behncke <wilhelm.behncke@openformation.io>
- *
  */
 
 import { createEventBus, Subscriber } from "../../framework/createEventBus.ts";
+import { Exception } from "../../framework/exception.ts";
 
 import { HTTPMethod } from "../domain/model/HTTPMethod.ts";
 import { Snapshot } from "../domain/model/Snapshot.ts";
@@ -32,25 +32,13 @@ import { makeCreateTree } from "../domain/service/createTree.ts";
 import { makeAddSnapshot } from "../domain/service/addSnapshot.ts";
 import { getTemplate } from "../domain/service/getTemplate.ts";
 
-type RCaptureRequest =
-  | {
-      type: "SUCCESS: Request was Captured";
-      value: Response;
-    }
-  | {
-      type: "ERROR: Template could not be written";
-      value: Response;
-    };
-
-export type ICaptureRequest = (given: {
-  aRequest: Request;
-}) => Promise<RCaptureRequest>;
+export type ICaptureRequest = ReturnType<typeof makeCaptureRequest>;
 
 export const makeCaptureRequest = (deps: {
   urlOfProxiedService: URL;
   virtualServiceTree: null | Node;
   subscribers: Subscriber<DomainEvent>[];
-}): ICaptureRequest => {
+}) => {
   const eventBus = createEventBus<DomainEvent>();
   const createTree = makeCreateTree({ eventBus });
   const addSnapshot = makeAddSnapshot({ eventBus });
@@ -59,7 +47,9 @@ export const makeCaptureRequest = (deps: {
 
   let rootNode = deps.virtualServiceTree;
 
-  const captureRequest: ICaptureRequest = async (given) => {
+  const captureRequest = async (given: {
+    aRequest: Request;
+  }) => {
     const requestUrl = new URL(given.aRequest.url);
     const proxyUrl = new URL(deps.urlOfProxiedService.toString());
     proxyUrl.pathname = requestUrl.pathname;
@@ -79,7 +69,7 @@ export const makeCaptureRequest = (deps: {
         await fetch(proxyUrl.toString(), {
           method: given.aRequest.method,
           headers: given.aRequest.headers,
-        })
+        }),
       );
       rootNode = addSnapshot({
         aRootNode: rootNode,
@@ -95,16 +85,13 @@ export const makeCaptureRequest = (deps: {
     }
 
     if (template === null) {
-      return {
-        type: "ERROR: Template could not be written",
-        value: new Response("Template could not be written", { status: 500 }),
-      };
+      throw Exception.raise({
+        code: 1641473616,
+        message: "Template could not be written",
+      });
     }
 
-    return {
-      type: "SUCCESS: Request was Captured",
-      value: await template.generateResponse(given.aRequest),
-    };
+    return await template.generateResponse(given.aRequest);
   };
 
   return captureRequest;

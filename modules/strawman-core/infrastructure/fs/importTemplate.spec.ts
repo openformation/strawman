@@ -18,18 +18,21 @@
 
 /**
  * @author Wilhelm Behncke <wilhelm.behncke@openformation.io>
- *
  */
 
-import { assert, assertEquals } from "../../../../deps-dev/asserts.ts";
-import { spy, assertSpyCall } from "../../../../deps-dev/mock.ts";
+import {
+  assert,
+  assertRejects,
+} from "../../../../deps-dev/asserts.ts";
+import { assertSpyCall, spy } from "../../../../deps-dev/mock.ts";
 
 import { Template } from "../../domain/model/Template.ts";
 
 import { makeImportTemplate } from "./importTemplate.ts";
 
 Deno.test({
-  name: "`importTemplate` imports a template from a script file, adding a cache buster so it always retrieves a fresh version of the file",
+  name:
+    "`importTemplate` imports a template from a script file, adding a cache buster so it always retrieves a fresh version of the file",
   fn: async () => {
     const importMock = spy(() => Promise.resolve({ default: () => "" }));
     const importTemplate = makeImportTemplate({
@@ -39,8 +42,7 @@ Deno.test({
 
     const result = await importTemplate("/some/path/to/some/script.ts");
 
-    assert(result.type === "SUCCESS: Template was imported");
-    assert(result.value instanceof Template);
+    assert(result instanceof Template);
 
     assertSpyCall(importMock, 0, {
       args: ["file:///some/path/to/some/script.ts?now=1638883111442"],
@@ -49,7 +51,8 @@ Deno.test({
 });
 
 Deno.test({
-  name: "`importTemplate` returns an error if the script file doesn't export a function as default",
+  name:
+    "`importTemplate` returns an error if the script file doesn't export a function as default",
   fn: async () => {
     const importMock = spy(() => Promise.resolve({ default: "Whoops" }));
     const importTemplate = makeImportTemplate({
@@ -57,12 +60,10 @@ Deno.test({
       timer: () => 1638883111442,
     });
 
-    const result = await importTemplate("/some/path/to/some/script.ts");
-
-    assert(result.type === "ERROR: Template was not a function");
-    assertEquals(
-      result.message,
-      'Expected "/some/path/to/some/script.ts" to export a function, but got "string" instead.'
+    await assertRejects(
+      () => importTemplate("/some/path/to/some/script.ts"),
+      undefined,
+      'Expected "/some/path/to/some/script.ts" to export a function, but got "string" instead.',
     );
   },
 });
