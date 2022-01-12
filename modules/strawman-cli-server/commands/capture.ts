@@ -80,14 +80,12 @@ const parseParametersFromCliArguments = (args: string[]): CommandParameters => {
   }
 
   return {
-    theRemoteRootUri: new URL(
-      args[1] as string,
-    ),
+    theRemoteRootUri: new URL(positional[1] as string),
     theLocalRootUri: new URL(
-      options.l ?? options["local-root-uri"] ?? "http://localhost:8080",
+      options.l ?? options["local-root-uri"] ?? "http://localhost:8080"
     ),
-    thePathToSnapshotDirectory: options.s ?? options["snapshot-dir"] ??
-      "./snapshots",
+    thePathToSnapshotDirectory:
+      options.s ?? options["snapshot-dir"] ?? "./snapshots",
   };
 };
 
