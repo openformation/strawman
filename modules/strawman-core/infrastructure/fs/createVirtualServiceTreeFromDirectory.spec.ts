@@ -130,13 +130,13 @@ Deno.test({
       });
     const pathToDirectory = path.join(
       path.dirname(path.fromFileUrl(import.meta.url)),
-      "__fixtures__",
+      "__fixtures__/some",
     );
 
     await assertRejects(
       () => createVirtualServiceTreeFromDirectory(pathToDirectory),
       undefined,
-      'Could not create child node "some".',
+      'Could not create child node "deeper".',
     );
   },
 });
