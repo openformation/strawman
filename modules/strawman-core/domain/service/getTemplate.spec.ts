@@ -21,13 +21,18 @@
  *
  */
 
-import { assertEquals } from "../../../../deps-dev/asserts.ts";
+import {
+  assertEquals,
+  assertStrictEquals,
+} from "../../../../deps-dev/asserts.ts";
 
+import { Arguments } from "../model/Arguments.ts";
 import { HTTPMethod } from "../model/HTTPMethod.ts";
 import { Template } from "../model/Template.ts";
 import { NodeName } from "../model/NodeName.ts";
 import { NodePath } from "../model/NodePath.ts";
 import { Node } from "../model/Node.ts";
+import { Wildcard } from "../model/Wildcard.ts";
 
 import { getTemplate } from "./getTemplate.ts";
 
@@ -35,11 +40,21 @@ const rootTemplate = Template.withCallback(() => "");
 const level1Template = Template.withCallback(() => "");
 const level2Template = Template.withCallback(() => "");
 const level3Template = Template.withCallback(() => "");
+const wildcardTemplate = Template.withCallback(() => "");
 const tree = Node.blank()
   .withAddedChild(NodeName.fromString("level-1-1"), Node.blank())
   .withAddedChild(
     NodeName.fromString("level-1-2"),
     Node.blank()
+      .withWildcard(
+        Wildcard.create(
+          "wildcard",
+          Node.blank().withTemplateForHTTPMethod(
+            HTTPMethod.PATCH,
+            wildcardTemplate
+          )
+        )
+      )
       .withAddedChild(
         NodeName.fromString("level-2-1"),
         Node.blank().withTemplateForHTTPMethod(HTTPMethod.POST, level2Template)
@@ -71,7 +86,7 @@ Deno.test({
         aPath: NodePath.fromString("/"),
         anHTTPMethod: HTTPMethod.PATCH,
       }),
-      rootTemplate
+      [rootTemplate, Arguments.empty()]
     );
     assertEquals(
       getTemplate({
@@ -79,7 +94,7 @@ Deno.test({
         aPath: NodePath.fromString("/level-1-3"),
         anHTTPMethod: HTTPMethod.GET,
       }),
-      level1Template
+      [level1Template, Arguments.empty()]
     );
     assertEquals(
       getTemplate({
@@ -87,7 +102,7 @@ Deno.test({
         aPath: NodePath.fromString("/level-1-2/level-2-1"),
         anHTTPMethod: HTTPMethod.POST,
       }),
-      level2Template
+      [level2Template, Arguments.empty()]
     );
     assertEquals(
       getTemplate({
@@ -95,8 +110,22 @@ Deno.test({
         aPath: NodePath.fromString("/level-1-2/level-2-3/level-3-1"),
         anHTTPMethod: HTTPMethod.DELETE,
       }),
-      level3Template
+      [level3Template, Arguments.empty()]
     );
+  },
+});
+
+Deno.test({
+  name: "`getTemplate` resolves wildcards into arguments",
+  fn: () => {
+    const [template, args] = getTemplate({
+      aRootNode: tree,
+      aPath: NodePath.fromString("/level-1-2/argument"),
+      anHTTPMethod: HTTPMethod.PATCH,
+    })!;
+
+    assertStrictEquals(template, wildcardTemplate);
+    assertEquals(args.toRecord(), { wildcard: "argument" });
   },
 });
 
@@ -106,7 +135,7 @@ Deno.test({
     assertEquals(
       getTemplate({
         aRootNode: tree,
-        aPath: NodePath.fromString("/level-1-2/un/known"),
+        aPath: NodePath.fromString("/level-2-2/un/known"),
         anHTTPMethod: HTTPMethod.DELETE,
       }),
       null

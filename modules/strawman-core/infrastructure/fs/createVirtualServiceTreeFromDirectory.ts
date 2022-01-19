@@ -28,6 +28,7 @@ import { Exception } from "../../../framework/exception.ts";
 import { Node } from "../../domain/model/Node.ts";
 import { NodeName } from "../../domain/model/NodeName.ts";
 import { HTTPMethod } from "../../domain/model/HTTPMethod.ts";
+import { Wildcard } from "../../domain/model/Wildcard.ts";
 import { IImportTemplate } from "./importTemplate.ts";
 
 export type ICreateVirtualServiceTreeFromDirectory = ReturnType<
@@ -38,7 +39,7 @@ export const makeCreateVirtualServiceTreeFromDirectory = (deps: {
   importTemplate: IImportTemplate;
 }) => {
   const createVirtualServiceTreeFromDirectory = async (
-    pathToDirectory: string,
+    pathToDirectory: string
   ): Promise<Node> => {
     let rootNode = Node.blank();
 
@@ -61,12 +62,23 @@ export const makeCreateVirtualServiceTreeFromDirectory = (deps: {
     for await (const file of Deno.readDir(pathToDirectory)) {
       if (file.isDirectory) {
         try {
-          rootNode = rootNode.withAddedChild(
-            NodeName.fromString(file.name),
-            await createVirtualServiceTreeFromDirectory(
-              path.join(pathToDirectory, file.name),
-            ),
-          );
+          if (file.name.startsWith("[") && file.name.endsWith("]")) {
+            rootNode = rootNode.withWildcard(
+              Wildcard.create(
+                file.name.slice(1, -1),
+                await createVirtualServiceTreeFromDirectory(
+                  path.join(pathToDirectory, file.name)
+                )
+              )
+            );
+          } else {
+            rootNode = rootNode.withAddedChild(
+              NodeName.fromString(file.name),
+              await createVirtualServiceTreeFromDirectory(
+                path.join(pathToDirectory, file.name)
+              )
+            );
+          }
         } catch (err) {
           throw Exception.raise({
             code: 1641392588,
@@ -82,9 +94,7 @@ export const makeCreateVirtualServiceTreeFromDirectory = (deps: {
         try {
           rootNode = rootNode.withTemplateForHTTPMethod(
             HTTPMethod.fromString(file.name.split(".")[0]!),
-            await deps.importTemplate(
-              pathToTemplate,
-            ),
+            await deps.importTemplate(pathToTemplate)
           );
         } catch (err) {
           throw Exception.raise({

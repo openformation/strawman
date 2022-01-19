@@ -24,12 +24,14 @@
 import { NodeName } from "./NodeName.ts";
 import { HTTPMethod } from "./HTTPMethod.ts";
 import { Template } from "./Template.ts";
+import { Wildcard } from "./Wildcard.ts";
 
 export class Node {
   private constructor(
     private readonly props: {
-      templates: Record<string, Template>;
-      children: Record<string, Node>;
+      readonly templates: Record<string, Template>;
+      readonly children: Record<string, Node>;
+      readonly wildcard: null | Wildcard;
     }
   ) {}
 
@@ -37,6 +39,7 @@ export class Node {
     new Node({
       templates: {},
       children: {},
+      wildcard: null,
     });
 
   public readonly getTemplateForHTTPMethod = (httpMethod: HTTPMethod) =>
@@ -61,5 +64,13 @@ export class Node {
         ...this.props.children,
         [nodeName.toString()]: addedChild,
       },
+    });
+
+  public readonly getWildcard = () => this.props.wildcard;
+
+  public readonly withWildcard = (wildcard: Wildcard) =>
+    new Node({
+      ...this.props,
+      wildcard,
     });
 }

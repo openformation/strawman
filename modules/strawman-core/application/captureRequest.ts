@@ -47,9 +47,7 @@ export const makeCaptureRequest = (deps: {
 
   let rootNode = deps.virtualServiceTree;
 
-  const captureRequest = async (given: {
-    aRequest: Request;
-  }) => {
+  const captureRequest = async (given: { aRequest: Request }) => {
     const requestUrl = new URL(given.aRequest.url);
     const proxyUrl = new URL(deps.urlOfProxiedService.toString());
     proxyUrl.pathname = requestUrl.pathname;
@@ -59,7 +57,7 @@ export const makeCaptureRequest = (deps: {
 
     if (rootNode === null) rootNode = createTree();
 
-    let template = getTemplate({
+    let [template, arguments] = getTemplate({
       aRootNode: rootNode,
       aPath: nodePathFromRequest,
       anHTTPMethod: httpMethodFromRequest,
@@ -69,7 +67,7 @@ export const makeCaptureRequest = (deps: {
         await fetch(proxyUrl.toString(), {
           method: given.aRequest.method,
           headers: given.aRequest.headers,
-        }),
+        })
       );
       rootNode = addSnapshot({
         aRootNode: rootNode,
@@ -77,7 +75,7 @@ export const makeCaptureRequest = (deps: {
         aSnapShot: snapshot,
         anHTTPMethod: httpMethodFromRequest,
       });
-      template = getTemplate({
+      [template, arguments] = getTemplate({
         aRootNode: rootNode,
         aPath: nodePathFromRequest,
         anHTTPMethod: httpMethodFromRequest,
@@ -91,7 +89,10 @@ export const makeCaptureRequest = (deps: {
       });
     }
 
-    return await template.generateResponse(given.aRequest);
+    return await template.generateResponse(
+      given.aRequest,
+      arguments.toRecord()
+    );
   };
 
   return captureRequest;

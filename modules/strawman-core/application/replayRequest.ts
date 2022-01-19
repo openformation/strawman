@@ -66,14 +66,17 @@ export const makeReplayRequest = (deps: {
     const requestUrl = new URL(given.aRequest.url);
 
     if (virtualServiceTreeRef.current !== null) {
-      const template = getTemplate({
+      const [template, arguments] = getTemplate({
         aRootNode: virtualServiceTreeRef.current,
         aPath: NodePath.fromString(requestUrl.pathname),
         anHTTPMethod: httpMethodFromRequest,
       });
 
       if (template !== null) {
-        return await template.generateResponse(given.aRequest);
+        return await template.generateResponse(
+          given.aRequest,
+          arguments.toRecord()
+        );
       }
     }
 

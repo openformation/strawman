@@ -21,13 +21,18 @@
  *
  */
 
-import { assert, assertStrictEquals } from "../../../../deps-dev/asserts.ts";
+import {
+  assert,
+  assertEquals,
+  assertStrictEquals,
+} from "../../../../deps-dev/asserts.ts";
 
 import { HTTPMethod } from "./HTTPMethod.ts";
 import { Snapshot } from "./Snapshot.ts";
 import { Template } from "./Template.ts";
 import { NodeName } from "./NodeName.ts";
 import { Node } from "./Node.ts";
+import { Wildcard } from "./Wildcard.ts";
 
 Deno.test({
   name: "`Node` can be created as blank",
@@ -91,5 +96,24 @@ Deno.test({
       Node.blank().getChild(NodeName.fromString("someChild")),
       null
     );
+  },
+});
+
+Deno.test({
+  name: "`Node` may have a Wildcard",
+  fn: () => {
+    const wildcard = Wildcard.create("foo", Node.blank());
+    const node = Node.blank().withWildcard(wildcard);
+
+    assertEquals(node.getWildcard(), wildcard);
+  },
+});
+
+Deno.test({
+  name: "`Node.getWildcard` returns null if there's no Wildcard",
+  fn: () => {
+    const node = Node.blank();
+
+    assert(node.getWildcard() === null);
   },
 });

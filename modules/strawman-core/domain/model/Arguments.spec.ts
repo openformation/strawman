@@ -1,6 +1,6 @@
 /**
  * strawman - A Deno-based service virtualization solution
- * Copyright (C) 2021 Open Formation GmbH
+ * Copyright (C) 2022 Open Formation GmbH
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -21,33 +21,27 @@
  *
  */
 
-import { Snapshot } from "./Snapshot.ts";
+import { assert, assertEquals } from "../../../../deps-dev/asserts.ts";
 
-export class Template {
-  private constructor(
-    private readonly props: {
-      callback: (
-        request: Request,
-        args: Record<string, string>
-      ) => string | Promise<string>;
-    }
-  ) {}
+import { NodeName } from "./NodeName.ts";
+import { Argument } from "./Argument.ts";
+import { Arguments } from "./Arguments.ts";
 
-  public static readonly withCallback = (
-    callback: (
-      request: Request,
-      args: Record<string, string>
-    ) => string | Promise<string>
-  ) => new Template({ callback });
+Deno.test("`Arguments`", async (t) => {
+  await t.step("can be created empty", () => {
+    assert(Arguments.empty() instanceof Arguments);
+  });
 
-  public static readonly fromSnapshot = (snapshot: Snapshot) =>
-    Template.withCallback(() => snapshot.toString());
+  await t.step("can be converted to a Record<string, string>", () => {
+    assertEquals(Arguments.empty().toRecord(), {});
+  });
 
-  public readonly generateResponse = async (
-    request: Request,
-    args: Record<string, string>
-  ) =>
-    Snapshot.fromString(
-      await this.props.callback(request, args)
-    ).toFetchResponse();
-}
+  await t.step("accept additional arguments", () => {
+    assertEquals(
+      Arguments.empty()
+        .withAddedArgument(Argument.create(NodeName.fromString("foo"), "bar"))
+        .toRecord(),
+      { foo: "bar" }
+    );
+  });
+});

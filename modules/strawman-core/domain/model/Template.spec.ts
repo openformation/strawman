@@ -63,7 +63,7 @@ Deno.test({
     const template = Template.fromSnapshot(snapshot);
 
     await assertResponseEquals(
-      await template.generateResponse(new Request("https://example.com")),
+      await template.generateResponse(new Request("https://example.com"), {}),
       response
     );
   },
@@ -89,7 +89,7 @@ Deno.test({
     });
 
     await assertResponseEquals(
-      await template.generateResponse(new Request("https://example.com/")),
+      await template.generateResponse(new Request("https://example.com/"), {}),
       new Response("Don't know who you are...", {
         status: 404,
         statusText: "Not Found",
@@ -100,7 +100,8 @@ Deno.test({
     );
     await assertResponseEquals(
       await template.generateResponse(
-        new Request("https://example.com/?name=Leia")
+        new Request("https://example.com/?name=Leia"),
+        {}
       ),
       new Response("May the force be with you, Leia!", {
         status: 200,

@@ -24,6 +24,7 @@
 import { Node } from "../model/Node.ts";
 import { NodePath } from "../model/NodePath.ts";
 import { HTTPMethod } from "../model/HTTPMethod.ts";
+import { Arguments } from "../model/Arguments.ts";
 
 export const getTemplate = (given: {
   aRootNode: Node;
@@ -31,12 +32,26 @@ export const getTemplate = (given: {
   anHTTPMethod: HTTPMethod;
 }) => {
   let node: null | Node = given.aRootNode;
+  let args: Arguments = Arguments.empty();
+
   for (const nodeName of given.aPath) {
-    node = node.getChild(nodeName);
+    const parent = node as Node;
+    node = parent.getChild(nodeName);
     if (node === null) {
-      return null;
+      const wildcard = parent.getWildcard();
+      if (wildcard === null) {
+        return null;
+      }
+
+      node = wildcard.getNode();
+      args = args.withAddedArgument(wildcard.makeArgument(nodeName));
     }
   }
 
-  return node.getTemplateForHTTPMethod(given.anHTTPMethod);
+  const template = node!.getTemplateForHTTPMethod(given.anHTTPMethod);
+  if (template === null) {
+    return null;
+  }
+
+  return [template, args] as const;
 };
