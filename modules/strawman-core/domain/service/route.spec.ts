@@ -34,7 +34,7 @@ import { NodePath } from "../model/NodePath.ts";
 import { Node } from "../model/Node.ts";
 import { Wildcard } from "../model/Wildcard.ts";
 
-import { getTemplate } from "./getTemplate.ts";
+import { route } from "./route.ts";
 
 const rootTemplate = Template.withCallback(() => "");
 const level1Template = Template.withCallback(() => "");
@@ -78,10 +78,10 @@ const tree = Node.blank()
   .withTemplateForHTTPMethod(HTTPMethod.PATCH, rootTemplate);
 
 Deno.test({
-  name: "`getTemplate` retrieves known templates from any level of a virtual service tree",
+  name: "`route` retrieves known templates from any level of a virtual service tree",
   fn: () => {
     assertEquals(
-      getTemplate({
+      route({
         aRootNode: tree,
         aPath: NodePath.fromString("/"),
         anHTTPMethod: HTTPMethod.PATCH,
@@ -89,7 +89,7 @@ Deno.test({
       [rootTemplate, Arguments.empty()]
     );
     assertEquals(
-      getTemplate({
+      route({
         aRootNode: tree,
         aPath: NodePath.fromString("/level-1-3"),
         anHTTPMethod: HTTPMethod.GET,
@@ -97,7 +97,7 @@ Deno.test({
       [level1Template, Arguments.empty()]
     );
     assertEquals(
-      getTemplate({
+      route({
         aRootNode: tree,
         aPath: NodePath.fromString("/level-1-2/level-2-1"),
         anHTTPMethod: HTTPMethod.POST,
@@ -105,7 +105,7 @@ Deno.test({
       [level2Template, Arguments.empty()]
     );
     assertEquals(
-      getTemplate({
+      route({
         aRootNode: tree,
         aPath: NodePath.fromString("/level-1-2/level-2-3/level-3-1"),
         anHTTPMethod: HTTPMethod.DELETE,
@@ -116,9 +116,9 @@ Deno.test({
 });
 
 Deno.test({
-  name: "`getTemplate` resolves wildcards into arguments",
+  name: "`route` resolves wildcards into arguments",
   fn: () => {
-    const [template, args] = getTemplate({
+    const [template, args] = route({
       aRootNode: tree,
       aPath: NodePath.fromString("/level-1-2/argument"),
       anHTTPMethod: HTTPMethod.PATCH,
@@ -130,10 +130,10 @@ Deno.test({
 });
 
 Deno.test({
-  name: "`getTemplate` returns null if a template cannot be found at the given path",
+  name: "`route` returns null if a template cannot be found at the given path",
   fn: () => {
     assertEquals(
-      getTemplate({
+      route({
         aRootNode: tree,
         aPath: NodePath.fromString("/level-2-2/un/known"),
         anHTTPMethod: HTTPMethod.DELETE,
@@ -144,10 +144,10 @@ Deno.test({
 });
 
 Deno.test({
-  name: "`getTemplate` returns null if a template cannot be found for the given HTTPMethod",
+  name: "`route` returns null if a template cannot be found for the given HTTPMethod",
   fn: () => {
     assertEquals(
-      getTemplate({
+      route({
         aRootNode: tree,
         aPath: NodePath.fromString("/"),
         anHTTPMethod: HTTPMethod.DELETE,
@@ -155,7 +155,7 @@ Deno.test({
       null
     );
     assertEquals(
-      getTemplate({
+      route({
         aRootNode: tree,
         aPath: NodePath.fromString("/level-1-2/level-2-3/level-3-1"),
         anHTTPMethod: HTTPMethod.GET,

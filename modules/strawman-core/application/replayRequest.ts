@@ -28,7 +28,7 @@ import { DomainEvent } from "../domain/events/DomainEvent.ts";
 import { HTTPMethod } from "../domain/model/HTTPMethod.ts";
 import { NodePath } from "../domain/model/NodePath.ts";
 import { Node } from "../domain/model/Node.ts";
-import { getTemplate } from "../domain/service/getTemplate.ts";
+import { route } from "../domain/service/route.ts";
 import { makeModifyTemplate } from "../domain/service/modifyTemplate.ts";
 
 import { makeWatchForChanges } from "../infrastructure/fs/watchForChanges.ts";
@@ -66,17 +66,16 @@ export const makeReplayRequest = (deps: {
     const requestUrl = new URL(given.aRequest.url);
 
     if (virtualServiceTreeRef.current !== null) {
-      const [template, arguments] = getTemplate({
+      const routingResult = route({
         aRootNode: virtualServiceTreeRef.current,
         aPath: NodePath.fromString(requestUrl.pathname),
         anHTTPMethod: httpMethodFromRequest,
       });
 
-      if (template !== null) {
-        return await template.generateResponse(
-          given.aRequest,
-          arguments.toRecord()
-        );
+      if (routingResult !== null) {
+        const [template, args] = routingResult;
+
+        return await template.generateResponse(given.aRequest, args.toRecord());
       }
     }
 

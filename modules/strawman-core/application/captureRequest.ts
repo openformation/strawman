@@ -30,7 +30,7 @@ import { Node } from "../domain/model/Node.ts";
 import { DomainEvent } from "../domain/events/DomainEvent.ts";
 import { makeCreateTree } from "../domain/service/createTree.ts";
 import { makeAddSnapshot } from "../domain/service/addSnapshot.ts";
-import { getTemplate } from "../domain/service/getTemplate.ts";
+import { route } from "../domain/service/route.ts";
 
 export type ICaptureRequest = ReturnType<typeof makeCaptureRequest>;
 
@@ -57,12 +57,12 @@ export const makeCaptureRequest = (deps: {
 
     if (rootNode === null) rootNode = createTree();
 
-    let [template, arguments] = getTemplate({
+    let routingResult = route({
       aRootNode: rootNode,
       aPath: nodePathFromRequest,
       anHTTPMethod: httpMethodFromRequest,
     });
-    if (template === null) {
+    if (routingResult === null) {
       const snapshot = await Snapshot.fromFetchResponse(
         await fetch(proxyUrl.toString(), {
           method: given.aRequest.method,
@@ -75,24 +75,23 @@ export const makeCaptureRequest = (deps: {
         aSnapShot: snapshot,
         anHTTPMethod: httpMethodFromRequest,
       });
-      [template, arguments] = getTemplate({
+      routingResult = route({
         aRootNode: rootNode,
         aPath: nodePathFromRequest,
         anHTTPMethod: httpMethodFromRequest,
       });
     }
 
-    if (template === null) {
+    if (routingResult === null) {
       throw Exception.raise({
         code: 1641473616,
         message: "Template could not be written",
       });
     }
 
-    return await template.generateResponse(
-      given.aRequest,
-      arguments.toRecord()
-    );
+    const [template, args] = routingResult;
+
+    return await template.generateResponse(given.aRequest, args.toRecord());
   };
 
   return captureRequest;

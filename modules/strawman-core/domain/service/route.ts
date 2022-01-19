@@ -25,12 +25,15 @@ import { Node } from "../model/Node.ts";
 import { NodePath } from "../model/NodePath.ts";
 import { HTTPMethod } from "../model/HTTPMethod.ts";
 import { Arguments } from "../model/Arguments.ts";
+import { Template } from "../model/Template.ts";
 
-export const getTemplate = (given: {
+export type RoutingResult = readonly [Template, Arguments];
+
+export const route = (given: {
   aRootNode: Node;
   aPath: NodePath;
   anHTTPMethod: HTTPMethod;
-}) => {
+}): null | RoutingResult => {
   let node: null | Node = given.aRootNode;
   let args: Arguments = Arguments.empty();
 
