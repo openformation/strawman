@@ -107,6 +107,22 @@ Deno.test({
 });
 
 Deno.test({
+  name: "When created from fetch response `Snapshot` removes the content-length header",
+  fn: async () => {
+    const response = new Response(JSON.stringify({ hello: "world" }), {
+      headers: {
+        "content-type": "application/json; charset=UTF-8",
+        "content-length": "17"
+      },
+    });
+    const snapshot = await Snapshot.fromFetchResponse(response);
+    const snapshotResponse = snapshot.toFetchResponse();
+
+    assert(snapshotResponse.headers.has("content-length") === false);
+  },
+});
+
+Deno.test({
   name: "`Snapshot` can be created from string",
   fn: () => {
     const snapshot = Snapshot.fromString(snapshotAsString);

@@ -35,7 +35,11 @@ export class Snapshot {
     new Snapshot({
       statusCode: response.status,
       statusText: response.statusText,
-      headers: Object.fromEntries(response.headers.entries()),
+      headers: Object.fromEntries(
+        [...response.headers.entries()].filter(
+          ([key]) => key.toLowerCase() !== "content-length"
+        )
+      ),
       body: await response.clone().text(),
     });
 
