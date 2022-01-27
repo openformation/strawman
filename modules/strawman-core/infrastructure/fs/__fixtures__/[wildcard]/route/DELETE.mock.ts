@@ -1,6 +1,6 @@
 /**
  * strawman - A Deno-based service virtualization solution
- * Copyright (C) 2021 Open Formation GmbH
+ * Copyright (C) 2022 Open Formation GmbH
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -21,33 +21,18 @@
  *
  */
 
-import { Snapshot } from "./Snapshot.ts";
+export default (req: Request, args: { wildcard: string }) => {
+  return response(req, args);
+};
 
-export class Template {
-  private constructor(
-    private readonly props: {
-      callback: (
-        request: Request,
-        args: Record<string, string>
-      ) => string | Promise<string>;
-    }
-  ) {}
+const response = (req: Request, args: { wildcard: string }) => `
+200 OK
 
-  public static readonly withCallback = (
-    callback: (
-      request: Request,
-      args: Record<string, string>
-    ) => string | Promise<string>
-  ) => new Template({ callback });
+content-type: application/json
 
-  public static readonly fromSnapshot = (snapshot: Snapshot) =>
-    Template.withCallback(() => snapshot.toString());
-
-  public readonly generateResponse = async (
-    request: Request,
-    args: Record<string, string>
-  ) =>
-    Snapshot.fromString(
-      await this.props.callback(request, args)
-    ).toFetchResponse();
-}
+${JSON.stringify({
+  requestMethod: req.method,
+  url: req.url,
+  message: `Successfully deleted ${args.wildcard}!`,
+})}
+`;

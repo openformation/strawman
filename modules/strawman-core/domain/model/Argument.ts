@@ -1,6 +1,6 @@
 /**
  * strawman - A Deno-based service virtualization solution
- * Copyright (C) 2021 Open Formation GmbH
+ * Copyright (C) 2022 Open Formation GmbH
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -21,33 +21,19 @@
  *
  */
 
-import { Snapshot } from "./Snapshot.ts";
+import { NodeName } from "./NodeName.ts";
 
-export class Template {
+export class Argument {
   private constructor(
     private readonly props: {
-      callback: (
-        request: Request,
-        args: Record<string, string>
-      ) => string | Promise<string>;
+      readonly name: NodeName;
+      readonly value: string;
     }
   ) {}
 
-  public static readonly withCallback = (
-    callback: (
-      request: Request,
-      args: Record<string, string>
-    ) => string | Promise<string>
-  ) => new Template({ callback });
+  public static readonly create = (name: NodeName, value: string) =>
+    new Argument({ name, value });
 
-  public static readonly fromSnapshot = (snapshot: Snapshot) =>
-    Template.withCallback(() => snapshot.toString());
-
-  public readonly generateResponse = async (
-    request: Request,
-    args: Record<string, string>
-  ) =>
-    Snapshot.fromString(
-      await this.props.callback(request, args)
-    ).toFetchResponse();
+  public readonly toEntry = () =>
+    [this.props.name.toString(), this.props.value] as const;
 }

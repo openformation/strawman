@@ -32,23 +32,21 @@ export const makeImportTemplate = (deps: {
   import: (pathToScriptFile: string) => Promise<{ default: unknown }>;
   timer: typeof Date.now;
 }) => {
-  const importTemplate = async (
-    pathToTemplateFile: string,
-  ) => {
+  const importTemplate = async (pathToTemplateFile: string) => {
     const { default: template } = await deps.import(
-      `${fileUrlFromPath(pathToTemplateFile)}?now=${deps.timer()}`,
+      `${fileUrlFromPath(pathToTemplateFile)}?now=${deps.timer()}`
     );
 
     if (typeof template !== "function") {
       throw Exception.raise({
         code: 1641391455,
-        message:
-          `Expected "${pathToTemplateFile}" to export a function, but got "${typeof template}" instead.`,
+        message: `Expected "${pathToTemplateFile}" to export a function, but got "${typeof template}" instead.`,
       });
     }
 
-    return Template.withCallback((request: Request) =>
-      template(request).trim()
+    return Template.withCallback(
+      (request: Request, args: Record<string, string>) =>
+        template(request, args).trim()
     );
   };
 

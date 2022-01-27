@@ -1,6 +1,6 @@
 /**
  * strawman - A Deno-based service virtualization solution
- * Copyright (C) 2021 Open Formation GmbH
+ * Copyright (C) 2022 Open Formation GmbH
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -21,33 +21,22 @@
  *
  */
 
-import { Snapshot } from "./Snapshot.ts";
+import { assert, assertEquals } from "../../../../deps-dev/asserts.ts";
 
-export class Template {
-  private constructor(
-    private readonly props: {
-      callback: (
-        request: Request,
-        args: Record<string, string>
-      ) => string | Promise<string>;
-    }
-  ) {}
+import { Argument } from "./Argument.ts";
+import { NodeName } from "./NodeName.ts";
 
-  public static readonly withCallback = (
-    callback: (
-      request: Request,
-      args: Record<string, string>
-    ) => string | Promise<string>
-  ) => new Template({ callback });
+Deno.test("`Argument`", async (t) => {
+  await t.step("can be created from NodeName and string value", () => {
+    assert(
+      Argument.create(NodeName.fromString("foo"), "bar") instanceof Argument
+    );
+  });
 
-  public static readonly fromSnapshot = (snapshot: Snapshot) =>
-    Template.withCallback(() => snapshot.toString());
-
-  public readonly generateResponse = async (
-    request: Request,
-    args: Record<string, string>
-  ) =>
-    Snapshot.fromString(
-      await this.props.callback(request, args)
-    ).toFetchResponse();
-}
+  await t.step("can be converted into an object entry", () => {
+    assertEquals(
+      Argument.create(NodeName.fromString("foo"), "bar").toEntry(),
+      ["foo", "bar"]
+    );
+  });
+});

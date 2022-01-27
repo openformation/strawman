@@ -1,6 +1,6 @@
 /**
  * strawman - A Deno-based service virtualization solution
- * Copyright (C) 2021 Open Formation GmbH
+ * Copyright (C) 2022 Open Formation GmbH
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -21,22 +21,17 @@
  *
  */
 
-import { Node } from "../model/Node.ts";
-import { NodePath } from "../model/NodePath.ts";
-import { HTTPMethod } from "../model/HTTPMethod.ts";
+import { Argument } from "./Argument.ts";
 
-export const getTemplate = (given: {
-  aRootNode: Node;
-  aPath: NodePath;
-  anHTTPMethod: HTTPMethod;
-}) => {
-  let node: null | Node = given.aRootNode;
-  for (const nodeName of given.aPath) {
-    node = node.getChild(nodeName);
-    if (node === null) {
-      return null;
-    }
-  }
+export class Arguments {
+  private constructor(private readonly members: Argument[]) {}
 
-  return node.getTemplateForHTTPMethod(given.anHTTPMethod);
-};
+  private static readonly __EMPTY = new Arguments([]);
+  public static readonly empty = () => Arguments.__EMPTY;
+
+  public readonly withAddedArgument = (argument: Argument) =>
+    new Arguments([...this.members, argument]);
+
+  public readonly toRecord = () =>
+    Object.fromEntries(this.members.map((argument) => argument.toEntry()));
+}

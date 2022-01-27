@@ -30,7 +30,7 @@ import { Node } from "../domain/model/Node.ts";
 import { DomainEvent } from "../domain/events/DomainEvent.ts";
 import { makeCreateTree } from "../domain/service/createTree.ts";
 import { makeAddSnapshot } from "../domain/service/addSnapshot.ts";
-import { getTemplate } from "../domain/service/getTemplate.ts";
+import { route } from "../domain/service/route.ts";
 
 export type ICaptureRequest = ReturnType<typeof makeCaptureRequest>;
 
@@ -47,9 +47,7 @@ export const makeCaptureRequest = (deps: {
 
   let rootNode = deps.virtualServiceTree;
 
-  const captureRequest = async (given: {
-    aRequest: Request;
-  }) => {
+  const captureRequest = async (given: { aRequest: Request }) => {
     const requestUrl = new URL(given.aRequest.url);
     const proxyUrl = new URL(deps.urlOfProxiedService.toString());
     proxyUrl.pathname = requestUrl.pathname;
@@ -59,17 +57,17 @@ export const makeCaptureRequest = (deps: {
 
     if (rootNode === null) rootNode = createTree();
 
-    let template = getTemplate({
+    let routingResult = route({
       aRootNode: rootNode,
       aPath: nodePathFromRequest,
       anHTTPMethod: httpMethodFromRequest,
     });
-    if (template === null) {
+    if (routingResult === null) {
       const snapshot = await Snapshot.fromFetchResponse(
         await fetch(proxyUrl.toString(), {
           method: given.aRequest.method,
           headers: given.aRequest.headers,
-        }),
+        })
       );
       rootNode = addSnapshot({
         aRootNode: rootNode,
@@ -77,21 +75,23 @@ export const makeCaptureRequest = (deps: {
         aSnapShot: snapshot,
         anHTTPMethod: httpMethodFromRequest,
       });
-      template = getTemplate({
+      routingResult = route({
         aRootNode: rootNode,
         aPath: nodePathFromRequest,
         anHTTPMethod: httpMethodFromRequest,
       });
     }
 
-    if (template === null) {
+    if (routingResult === null) {
       throw Exception.raise({
         code: 1641473616,
         message: "Template could not be written",
       });
     }
 
-    return await template.generateResponse(given.aRequest);
+    const [template, args] = routingResult;
+
+    return await template.generateResponse(given.aRequest, args.toRecord());
   };
 
   return captureRequest;
