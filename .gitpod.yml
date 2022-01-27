@@ -1,0 +1,6 @@
+image: "openformation/gitpod-deno"
+vscode:
+  extensions:
+    - "eamodio.gitlens"
+    - "denoland.vscode-deno"
+    - "esbenp.prettier-vscode"
