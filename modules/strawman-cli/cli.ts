@@ -24,12 +24,10 @@ import { parse } from "../../deps/flags.ts";
 
 import { VERSION } from "../../version.ts";
 
-import * as capture from "./commands/capture.ts";
-import * as replay from "./commands/replay.ts";
+import * as start from "./commands/start.ts";
 
 const commands = {
-  capture,
-  replay,
+  start,
 } as const;
 
 const header = `
