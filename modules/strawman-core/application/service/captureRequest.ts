@@ -20,32 +20,28 @@
  * @author Wilhelm Behncke <wilhelm.behncke@openformation.io>
  */
 
-import { createEventBus, Subscriber } from "../../framework/createEventBus.ts";
-import { Exception } from "../../framework/exception.ts";
+import { Ref } from "../../../framework/createRef.ts";
+import { EventBus } from "../../../framework/createEventBus.ts";
+import { Exception } from "../../../framework/exception.ts";
 
-import { HTTPMethod } from "../domain/model/HTTPMethod.ts";
-import { Snapshot } from "../domain/model/Snapshot.ts";
-import { Path } from "../domain/model/Path.ts";
-import { Node } from "../domain/model/Node.ts";
-import { DomainEvent } from "../domain/events/DomainEvent.ts";
-import { makeCreateTree } from "../domain/service/createTree.ts";
-import { makeAddSnapshot } from "../domain/service/addSnapshot.ts";
-import { route } from "../domain/service/route.ts";
+import { HTTPMethod } from "../../domain/model/HTTPMethod.ts";
+import { Snapshot } from "../../domain/model/Snapshot.ts";
+import { Path } from "../../domain/model/Path.ts";
+import { Node } from "../../domain/model/Node.ts";
+import { DomainEvent } from "../../domain/events/DomainEvent.ts";
+import { makeCreateTree } from "../../domain/service/createTree.ts";
+import { makeAddSnapshot } from "../../domain/service/addSnapshot.ts";
+import { route } from "../../domain/service/route.ts";
 
 export type ICaptureRequest = ReturnType<typeof makeCaptureRequest>;
 
 export const makeCaptureRequest = (deps: {
   urlOfProxiedService: URL;
-  virtualServiceTree: null | Node;
-  subscribers: Subscriber<DomainEvent>[];
+  virtualServiceTreeRef: Ref<Node>;
+  eventBus: EventBus<DomainEvent>;
 }) => {
-  const eventBus = createEventBus<DomainEvent>();
-  const createTree = makeCreateTree({ eventBus });
-  const addSnapshot = makeAddSnapshot({ eventBus });
-
-  deps.subscribers.forEach(eventBus.subscribe);
-
-  let rootNode = deps.virtualServiceTree;
+  const createTree = makeCreateTree({ eventBus: deps.eventBus });
+  const addSnapshot = makeAddSnapshot({ eventBus: deps.eventBus });
 
   const captureRequest = async (given: { aRequest: Request }) => {
     const requestUrl = new URL(given.aRequest.url);
@@ -55,10 +51,12 @@ export const makeCaptureRequest = (deps: {
     const httpMethodFromRequest = HTTPMethod.ofRequest(given.aRequest);
     const pathFromRequest = Path.fromString(requestUrl.pathname);
 
-    if (rootNode === null) rootNode = createTree();
+    if (deps.virtualServiceTreeRef.current === null) {
+      deps.virtualServiceTreeRef.current = createTree();
+    }
 
     let routingResult = route({
-      aRootNode: rootNode,
+      aRootNode: deps.virtualServiceTreeRef.current,
       aPath: pathFromRequest,
       anHTTPMethod: httpMethodFromRequest,
     });
@@ -69,14 +67,14 @@ export const makeCaptureRequest = (deps: {
           headers: given.aRequest.headers,
         }),
       );
-      rootNode = addSnapshot({
-        aRootNode: rootNode,
+      deps.virtualServiceTreeRef.current = addSnapshot({
+        aRootNode: deps.virtualServiceTreeRef.current,
         aPath: pathFromRequest,
         aSnapShot: snapshot,
         anHTTPMethod: httpMethodFromRequest,
       });
       routingResult = route({
-        aRootNode: rootNode,
+        aRootNode: deps.virtualServiceTreeRef.current,
         aPath: pathFromRequest,
         anHTTPMethod: httpMethodFromRequest,
       });

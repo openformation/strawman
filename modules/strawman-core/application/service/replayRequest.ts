@@ -20,54 +20,29 @@
  * @author Wilhelm Behncke <wilhelm.behncke@openformation.io>
  */
 
-import { createRef } from "../../framework/createRef.ts";
-import { createEventBus, Subscriber } from "../../framework/createEventBus.ts";
-import { Exception } from "../../framework/exception.ts";
+import { Ref } from "../../../framework/createRef.ts";
+import { EventBus } from "../../../framework/createEventBus.ts";
+import { Exception } from "../../../framework/exception.ts";
 
-import { DomainEvent } from "../domain/events/DomainEvent.ts";
-import { HTTPMethod } from "../domain/model/HTTPMethod.ts";
-import { Path } from "../domain/model/Path.ts";
-import { Node } from "../domain/model/Node.ts";
-import { route } from "../domain/service/route.ts";
-import { makeModifyTemplate } from "../domain/service/modifyTemplate.ts";
-
-import { makeWatchForChanges } from "../infrastructure/fs/watchForChanges.ts";
-import { makeImportTemplate } from "../infrastructure/fs/importTemplate.ts";
+import { DomainEvent } from "../../domain/events/DomainEvent.ts";
+import { HTTPMethod } from "../../domain/model/HTTPMethod.ts";
+import { Path } from "../../domain/model/Path.ts";
+import { Node } from "../../domain/model/Node.ts";
+import { route } from "../../domain/service/route.ts";
 
 export type IReplayRequest = ReturnType<typeof makeReplayRequest>;
 
 export const makeReplayRequest = (deps: {
-  virtualServiceTree: null | Node;
-  isEditingEnabled: boolean;
-  pathToDirectory: string;
-  subscribers: Subscriber<DomainEvent>[];
+  virtualServiceTreeRef: Ref<Node>;
+  eventBus: EventBus<DomainEvent>;
 }) => {
-  const virtualServiceTreeRef = createRef(deps.virtualServiceTree);
-  const eventBus = createEventBus<DomainEvent>();
-
-  deps.subscribers.forEach(eventBus.subscribe);
-
-  if (deps.isEditingEnabled) {
-    const watchForChanges = makeWatchForChanges({
-      pathToDirectory: deps.pathToDirectory,
-      modifyTemplate: makeModifyTemplate({ eventBus }),
-      importTemplate: makeImportTemplate({
-        import: (pathToTemplateFile) => import(pathToTemplateFile),
-        timer: Date.now,
-      }),
-      virtualServiceTreeRef,
-    });
-
-    watchForChanges();
-  }
-
   const replayRequest = async (given: { aRequest: Request }) => {
     const httpMethodFromRequest = HTTPMethod.ofRequest(given.aRequest);
     const requestUrl = new URL(given.aRequest.url);
 
-    if (virtualServiceTreeRef.current !== null) {
+    if (deps.virtualServiceTreeRef.current !== null) {
       const routingResult = route({
-        aRootNode: virtualServiceTreeRef.current,
+        aRootNode: deps.virtualServiceTreeRef.current,
         aPath: Path.fromString(requestUrl.pathname),
         anHTTPMethod: httpMethodFromRequest,
       });
