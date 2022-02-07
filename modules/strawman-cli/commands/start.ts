@@ -25,28 +25,39 @@ import { parse } from "../../../deps/flags.ts";
 import { castError } from "../../framework/castError.ts";
 import { logError } from "../../framework/logError.ts";
 
-import {
-  ICaptureRequest,
-  makeCaptureRequest,
-} from "../../strawman-core/application/captureRequest.ts";
-import { Node } from "../../strawman-core/domain/model/Node.ts";
+import { makeModifyTemplate } from "../../strawman-core/domain/service/modifyTemplate.ts";
+
 import { makeImportTemplate } from "../../strawman-core/infrastructure/fs/importTemplate.ts";
 import { makeCreateVirtualServiceTreeFromDirectory } from "../../strawman-core/infrastructure/fs/createVirtualServiceTreeFromDirectory.ts";
 import { makeSyncVirtualServiceTreeWithDirectory } from "../../strawman-core/infrastructure/fs/syncVirtualServiceTreeWithDirectory.ts";
 
+import { makeWatchForChanges } from "../../strawman-core/infrastructure/fs/watchForChanges.ts";
+
+import { makeStrawman } from "../../strawman-core/application/strawman.ts";
+
 export const shortDescription =
-  "Strawman acts as a proxy and captures responses from a remote web service";
+  "Start a strawman server to simulate or capture HTTP responses of a remote service";
 
 export const helpMessage = `
 Usage:
-  strawman capture [...options] <remote-root-uri>
+  strawman start [...options] <remote-root-uri>
 
 Options:
+  -m, --mode            "replay" or "capture" - defines how strawman handles
+                        incoming requests. 
+                        "capture" will forward the request to the remote 
+                        service and capture its response. 
+                        "replay" will answer with a previously captured 
+                        response.
+                        (defaults to: "replay")
   -l, --local-root-uri  The local URI that strawman is running on (defaults 
                         to: http://localhost:8080)
   -s, --snapshot-dir    The directory that captured snaphots should be saved 
                         in. Strawman will attempt to create this directory if
                         it does not exist yet. (defaults to: ./snapshots)
+  -e, --enable-editing  Strawman will watch for changes in the snapshot 
+                        directory and update the its service virtualization
+                        accordingly
 
 Examples:
   strawman capture https://example.com
@@ -55,18 +66,45 @@ Examples:
 `;
 
 type CommandParameters = {
+  theMode: "replay" | "capture";
   theRemoteRootUri: URL;
   theLocalRootUri: URL;
   thePathToSnapshotDirectory: string;
+  isEditingEnabled: boolean;
 };
 
 export const run = async () => {
   const parameters = parseParametersFromCliArguments(Deno.args);
   const virtualServiceTree = await initializeVirtualServiceTree(parameters);
+  const syncVirtualServiceTreeToDirectory =
+    makeSyncVirtualServiceTreeWithDirectory({
+      pathToDirectory: parameters.thePathToSnapshotDirectory,
+    });
+  const strawman = makeStrawman({
+    urlOfProxiedService: parameters.theRemoteRootUri,
+    virtualServiceTree,
+    subscribers: [syncVirtualServiceTreeToDirectory],
+  });
 
-  await startCaptureServer({
-    ...parameters,
-    aVirtualServiceTree: virtualServiceTree,
+  strawman.setMode(parameters.theMode);
+
+  if (parameters.isEditingEnabled) {
+    const watchForChanges = makeWatchForChanges({
+      pathToDirectory: parameters.thePathToSnapshotDirectory,
+      modifyTemplate: makeModifyTemplate({ eventBus: strawman.eventBus }),
+      importTemplate: makeImportTemplate({
+        import: (pathToTemplateFile) => import(pathToTemplateFile),
+        timer: Date.now,
+      }),
+      virtualServiceTreeRef: strawman.virtualServiceTreeRef,
+    });
+
+    watchForChanges();
+  }
+
+  await startHttpServer({
+    theLocalRootUri: parameters.theLocalRootUri,
+    aRequestHandler: strawman.handleRequest,
   });
 };
 
@@ -83,25 +121,15 @@ const parseParametersFromCliArguments = (args: string[]): CommandParameters => {
   }
 
   return {
+    theMode: options.m ?? options["mode"] ?? "replay",
     theRemoteRootUri: new URL(positional[1] as string),
     theLocalRootUri: new URL(
       options.l ?? options["local-root-uri"] ?? "http://localhost:8080",
     ),
     thePathToSnapshotDirectory: options.s ?? options["snapshot-dir"] ??
       "./snapshots",
+    isEditingEnabled: Boolean(options.e || options["enable-editing"]),
   };
-};
-
-const createSnapshotDirectoryIfNotExists = async (given: CommandParameters) => {
-  try {
-    await Deno.mkdir(given.thePathToSnapshotDirectory, { recursive: true });
-  } catch (err) {
-    console.error(
-      `[☓] Directory "${given.thePathToSnapshotDirectory}" could not be created`,
-    );
-    logError(castError(err));
-    Deno.exit(1);
-  }
 };
 
 const initializeVirtualServiceTree = async (given: CommandParameters) => {
@@ -128,19 +156,22 @@ const initializeVirtualServiceTree = async (given: CommandParameters) => {
   }
 };
 
-const startCaptureServer = async (
-  given: CommandParameters & { aVirtualServiceTree: Node },
-) => {
-  const syncVirtualServiceTreeWithDirectory =
-    makeSyncVirtualServiceTreeWithDirectory({
-      pathToDirectory: given.thePathToSnapshotDirectory,
-    });
-  const captureRequest = makeCaptureRequest({
-    urlOfProxiedService: given.theRemoteRootUri,
-    virtualServiceTree: given.aVirtualServiceTree,
-    subscribers: [syncVirtualServiceTreeWithDirectory],
-  });
+const createSnapshotDirectoryIfNotExists = async (given: CommandParameters) => {
+  try {
+    await Deno.mkdir(given.thePathToSnapshotDirectory, { recursive: true });
+  } catch (err) {
+    console.error(
+      `[☓] Directory "${given.thePathToSnapshotDirectory}" could not be created`,
+    );
+    logError(castError(err));
+    Deno.exit(1);
+  }
+};
 
+async function startHttpServer(given: {
+  theLocalRootUri: URL;
+  aRequestHandler: (request: Request) => Promise<Response>;
+}) {
   const server = Deno.listen({
     port: parseInt(given.theLocalRootUri.port ?? "8080", 10),
   });
@@ -149,19 +180,16 @@ const startCaptureServer = async (
 
   for await (const connection of server) {
     serveHttp({
-      ...given,
       aConnection: connection,
-      aCaptureRequestHandler: captureRequest,
+      aRequestHandler: given.aRequestHandler,
     });
   }
-};
+}
 
-const serveHttp = async (
-  given: CommandParameters & {
-    aConnection: Deno.Conn;
-    aCaptureRequestHandler: ICaptureRequest;
-  },
-) => {
+async function serveHttp(given: {
+  aConnection: Deno.Conn;
+  aRequestHandler: (request: Request) => Promise<Response>;
+}) {
   const http = Deno.serveHttp(given.aConnection);
 
   for await (const requestEvent of http) {
@@ -172,9 +200,7 @@ const serveHttp = async (
     );
 
     try {
-      const response = await given.aCaptureRequestHandler({
-        aRequest: requestEvent.request,
-      });
+      const response = await given.aRequestHandler(requestEvent.request);
 
       response.headers.set(strawmanModeHeader, strawmanModeType);
 
@@ -199,4 +225,4 @@ const serveHttp = async (
       requestEvent.respondWith(new Response(error.message, { status: 500 }));
     }
   }
-};
+}
