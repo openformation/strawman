@@ -20,22 +20,17 @@
  * @author Wilhelm Behncke <wilhelm.behncke@openformation.io>
  */
 
-import { Exception } from "./exception.ts";
+import { Exception } from "../framework/exception.ts";
 
-export const logError = (error: Error) => {
-  const logErrorRecursively = (error: Error, indentation: number) => {
-    console.error(`${"  ".repeat(indentation)} → ${error.message}`);
-
-    if (error.cause) {
-      logErrorRecursively(error.cause, indentation + 1);
-    } else if (error.stack) {
-      error.stack.split("\n").slice(error instanceof Exception ? 2 : 1).forEach(
-        (line) => {
-          console.error(`${"  ".repeat(indentation)}   ${line}`);
-        },
-      );
-    }
-  };
-
-  logErrorRecursively(error, 1);
+export type ErrorDTO = {
+  message: string;
+  cause: null | ErrorDTO;
+  trace: string[];
 };
+
+export const createErrorDTO = (error: Error): ErrorDTO => ({
+  message: error.message,
+  cause: error.cause ? createErrorDTO(error.cause) : null,
+  trace: error.stack?.split("\n").slice(error instanceof Exception ? 2 : 1) ??
+    [],
+});

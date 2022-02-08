@@ -1,0 +1,90 @@
+/**
+ * strawman - A Deno-based service virtualization solution
+ * Copyright (C) 2022 Open Formation GmbH
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+/**
+ * @author Wilhelm Behncke <wilhelm.behncke@openformation.io>
+ */
+
+import { ErrorDTO } from "./ErrorDTO.ts";
+
+type LogInfo = ReturnType<typeof LogInfo>;
+const LogInfo = (payload: { message: string }) => ({
+  type: "http://openformation.io/strawman-logger/LogInfo",
+  payload,
+} as const);
+
+type LogIncoming = ReturnType<typeof LogIncoming>;
+const LogIncoming = (payload: { message: string; request: Request }) => ({
+  type: "http://openformation.io/strawman-logger/LogIncoming",
+  payload,
+} as const);
+
+type LogOutgoing = ReturnType<typeof LogOutgoing>;
+const LogOutgoing = (
+  payload: { message: string; request: Request; response: Response },
+) => ({
+  type: "http://openformation.io/strawman-logger/LogOutgoing",
+  payload,
+} as const);
+
+type LogWarning = ReturnType<typeof LogWarning>;
+const LogWarning = (
+  payload: { message: string },
+) => ({
+  type: "http://openformation.io/strawman-logger/LogWarning",
+  payload,
+} as const);
+
+type LogError = ReturnType<typeof LogError>;
+const LogError = (payload: { error: ErrorDTO; request?: Request }) => ({
+  type: "http://openformation.io/strawman-logger/LogError",
+  payload,
+} as const);
+
+type LogFatal = ReturnType<typeof LogFatal>;
+const LogFatal = (payload: { error: ErrorDTO; request?: Request }) => ({
+  type: "http://openformation.io/strawman-logger/LogFatal",
+  payload,
+} as const);
+
+type LogDebug = ReturnType<typeof LogDebug>;
+const LogDebug = (
+  payload: { message: string },
+) => ({
+  type: "http://openformation.io/strawman-logger/LogDebug",
+  payload,
+} as const);
+
+export type LogEvent =
+  | LogInfo
+  | LogIncoming
+  | LogOutgoing
+  | LogWarning
+  | LogError
+  | LogFatal
+  | LogDebug;
+
+export const LogEvent = {
+  LogInfo,
+  LogIncoming,
+  LogOutgoing,
+  LogWarning,
+  LogError,
+  LogFatal,
+  LogDebug,
+} as const;
