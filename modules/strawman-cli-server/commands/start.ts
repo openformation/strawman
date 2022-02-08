@@ -22,18 +22,19 @@
 
 import { parse } from "../../../deps/flags.ts";
 
-import { castError } from "../../framework/castError.ts";
-import { logError } from "../../framework/logError.ts";
+import { createLogger, createLogPrinter } from "../../strawman-logger/mod.ts";
 
 import { makeModifyTemplate } from "../../strawman-core/domain/service/modifyTemplate.ts";
 
 import { makeImportTemplate } from "../../strawman-core/infrastructure/fs/importTemplate.ts";
-import { makeCreateVirtualServiceTreeFromDirectory } from "../../strawman-core/infrastructure/fs/createVirtualServiceTreeFromDirectory.ts";
 import { makeSaveVirtualServiceTreeToDirectory } from "../../strawman-core/infrastructure/fs/saveVirtualServiceTreeToDirectory.ts";
 
 import { makeWatchForChanges } from "../../strawman-core/infrastructure/fs/watchForChanges.ts";
 
 import { makeStrawman } from "../../strawman-core/application/strawman.ts";
+
+import { makeInitializeVirtualServiceTree } from "../lib/initializeVirtualServiceTree.ts";
+import { makeStartHttpServer } from "../lib/startHttpServer.ts";
 
 export const shortDescription =
   "Start a strawman server to simulate or capture HTTP responses of a remote service";
@@ -75,7 +76,18 @@ type CommandParameters = {
 
 export const run = async () => {
   const parameters = parseParametersFromCliArguments(Deno.args);
-  const virtualServiceTree = await initializeVirtualServiceTree(parameters);
+  const logger = createLogger();
+  const logPrinter = createLogPrinter();
+
+  logger.subscribe(logPrinter);
+
+  const initializeVirtualServiceTree = makeInitializeVirtualServiceTree({
+    logger,
+  });
+  const virtualServiceTree = await initializeVirtualServiceTree(
+    parameters.thePathToSnapshotDirectory,
+  );
+
   const saveVirtualServiceTreeToDirectory =
     makeSaveVirtualServiceTreeToDirectory({
       pathToDirectory: parameters.thePathToSnapshotDirectory,
@@ -100,8 +112,14 @@ export const run = async () => {
     });
 
     watchForChanges();
+    logger.info(
+      `Strawman is watching for changes in "${parameters.thePathToSnapshotDirectory}"`,
+    );
   }
 
+  const startHttpServer = makeStartHttpServer({
+    logger,
+  });
   await startHttpServer({
     theLocalRootUri: parameters.theLocalRootUri,
     aRequestHandler: strawman.handleRequest,
@@ -128,96 +146,3 @@ const parseParametersFromCliArguments = (args: string[]): CommandParameters => {
     isEditingEnabled: Boolean(options.e || options["enable-editing"]),
   };
 };
-
-const initializeVirtualServiceTree = async (given: CommandParameters) => {
-  const createVirtualServiceTreeFromDirectory =
-    makeCreateVirtualServiceTreeFromDirectory({
-      importTemplate: makeImportTemplate({
-        import: (pathToScriptFile) => import(pathToScriptFile),
-        timer: Date.now,
-      }),
-    });
-
-  await createSnapshotDirectoryIfNotExists(given);
-
-  try {
-    return await createVirtualServiceTreeFromDirectory(
-      given.thePathToSnapshotDirectory,
-    );
-  } catch (err) {
-    console.error(
-      `[☓] Virtual Service Tree could not be created`,
-    );
-    logError(castError(err));
-    Deno.exit(1);
-  }
-};
-
-const createSnapshotDirectoryIfNotExists = async (given: CommandParameters) => {
-  try {
-    await Deno.mkdir(given.thePathToSnapshotDirectory, { recursive: true });
-  } catch (err) {
-    console.error(
-      `[☓] Directory "${given.thePathToSnapshotDirectory}" could not be created`,
-    );
-    logError(castError(err));
-    Deno.exit(1);
-  }
-};
-
-async function startHttpServer(given: {
-  theLocalRootUri: URL;
-  aRequestHandler: (request: Request) => Promise<Response>;
-}) {
-  const server = Deno.listen({
-    port: parseInt(given.theLocalRootUri.port ?? "8080", 10),
-  });
-
-  console.info(`[⚐] Strawman is listening at ${given.theLocalRootUri}`);
-
-  for await (const connection of server) {
-    serveHttp({
-      aConnection: connection,
-      aRequestHandler: given.aRequestHandler,
-    });
-  }
-}
-
-async function serveHttp(given: {
-  aConnection: Deno.Conn;
-  aRequestHandler: (request: Request) => Promise<Response>;
-}) {
-  const http = Deno.serveHttp(given.aConnection);
-
-  for await (const requestEvent of http) {
-    console.info(
-      `[➘] [${requestEvent.request.method}] ${
-        new URL(requestEvent.request.url).pathname
-      }`,
-    );
-
-    try {
-      const response = await given.aRequestHandler(requestEvent.request);
-
-      requestEvent.respondWith(response).then(() => {
-        console.info(
-          `[➚] [${requestEvent.request.method}] [${response.status}] ${
-            new URL(requestEvent.request.url).pathname
-          }`,
-        );
-        console.info("  → Template was written");
-      });
-    } catch (err) {
-      const error = castError(err);
-
-      console.error(
-        `[☓] [${requestEvent.request.method}] ${
-          new URL(requestEvent.request.url).pathname
-        }`,
-      );
-      logError(error);
-
-      requestEvent.respondWith(new Response(error.message, { status: 500 }));
-    }
-  }
-}
