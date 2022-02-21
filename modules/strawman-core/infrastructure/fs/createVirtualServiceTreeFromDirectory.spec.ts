@@ -55,7 +55,7 @@ Deno.test({
 
     assertResponseEquals(
       await result
-        .getTemplateForHTTPMethod(HTTPMethod.GET)
+        .getTemplateForHTTPMethod(HTTPMethod.GET)!
         .generateResponse(new Request("https://example.com"), {}),
       new Response(
         '{"requestMethod":"GET","url":"https://example.com/","message":"Lorem ipsum..."}',
@@ -74,7 +74,7 @@ Deno.test({
         ?.getChild(PathSegment.fromString("deeper"))
         ?.getChild(PathSegment.fromString("path"))
         ?.getTemplateForHTTPMethod(HTTPMethod.POST)
-        .generateResponse(
+        ?.generateResponse(
           new Request("https://example.com", { method: "POST" }),
           {},
         )!,
@@ -95,7 +95,7 @@ Deno.test({
         ?.getNode()
         ?.getChild(PathSegment.fromString("route"))
         ?.getTemplateForHTTPMethod(HTTPMethod.DELETE)
-        .generateResponse(
+        ?.generateResponse(
           new Request("https://example.com", { method: "DELETE" }),
           { wildcard: "Test" },
         )!,

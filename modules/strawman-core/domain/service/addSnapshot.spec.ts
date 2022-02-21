@@ -60,7 +60,7 @@ Deno.test({
 
     await assertResponseEquals(
       await nextRootNode
-        .getTemplateForHTTPMethod(HTTPMethod.GET)
+        .getTemplateForHTTPMethod(HTTPMethod.GET)!
         .generateResponse(new Request("https://example.com"), {}),
       snapshot.toFetchResponse(),
     );
@@ -97,7 +97,7 @@ Deno.test({
         .getChild(PathSegment.fromString("some"))
         ?.getChild(PathSegment.fromString("deep"))
         ?.getChild(PathSegment.fromString("path"))
-        ?.getTemplateForHTTPMethod(HTTPMethod.GET)
+        ?.getTemplateForHTTPMethod(HTTPMethod.GET)!
         .generateResponse(new Request("https://example.com"), {})!,
       snapshot.toFetchResponse(),
     );

@@ -64,5 +64,14 @@ export const makeSyncVirtualServiceTreeWithDirectory = (deps: {
           ].join("\n"),
         )
       );
+    })
+    .on("http://openformation.io/strawman/TemplateWasDeleted", (ev) => {
+      const pathToTemplateFile = path.join(
+        deps.pathToDirectory,
+        ev.payload.path.toString(),
+        `${ev.payload.httpMethod.toString()}.mock.ts`,
+      );
+
+      jobQueue.addJob(() => Deno.remove(pathToTemplateFile));
     });
 };
