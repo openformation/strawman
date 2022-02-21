@@ -18,23 +18,25 @@
 
 /**
  * @author Wilhelm Behncke <wilhelm.behncke@openformation.io>
- *
  */
 
 import { NodeWasAdded } from "./NodeWasAdded.ts";
 import { SnapshotWasAdded } from "./SnapshotWasAdded.ts";
+import { TemplateWasDeleted } from "./TemplateWasDeleted.ts";
 import { TemplateWasModified } from "./TemplateWasModified.ts";
 import { TreeWasCreated } from "./TreeWasCreated.ts";
 
 export type DomainEvent =
   | NodeWasAdded
   | SnapshotWasAdded
+  | TemplateWasDeleted
   | TemplateWasModified
   | TreeWasCreated;
 
 export const DomainEvent = {
   NodeWasAdded,
   SnapshotWasAdded,
+  TemplateWasDeleted,
   TemplateWasModified,
   TreeWasCreated,
 } as const;
