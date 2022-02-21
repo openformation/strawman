@@ -20,10 +20,36 @@
  * @author Wilhelm Behncke <wilhelm.behncke@openformation.io>
  */
 
+import { createConstraints } from "../../../framework/createConstraints.ts";
+
+import { Path } from "./Path.ts";
 import { PathSegment } from "./PathSegment.ts";
 import { HTTPMethod } from "./HTTPMethod.ts";
 import { Template } from "./Template.ts";
 import { Wildcard } from "./Wildcard.ts";
+
+export const NodeConstraints = createConstraints("Node");
+
+const modifyNodeRecursively = (
+  node: Node,
+  pathSegments: PathSegment[],
+  modifierFn: (node: Node) => Node,
+): Node => {
+  const [head, ...tail] = pathSegments;
+  if (head) {
+    const child = node.getChild(head);
+    NodeConstraints.check({
+      [`Node "${head.toString()}" must exist`]: child !== null,
+    });
+
+    return node.withAddedChild(
+      head,
+      modifyNodeRecursively(child!, tail, modifierFn),
+    );
+  } else {
+    return modifierFn(node);
+  }
+};
 
 export class Node {
   private constructor(
@@ -41,8 +67,9 @@ export class Node {
       wildcard: null,
     });
 
-  public readonly getTemplateForHTTPMethod = (httpMethod: HTTPMethod) =>
-    this.props.templates[httpMethod.toString()] ?? null;
+  public readonly getTemplateForHTTPMethod = (
+    httpMethod: HTTPMethod,
+  ): null | Template => this.props.templates[httpMethod.toString()] ?? null;
 
   public readonly withTemplateForHTTPMethod = (
     httpMethod: HTTPMethod,
@@ -56,6 +83,11 @@ export class Node {
   public readonly getChild = (pathSegment: PathSegment): null | Node =>
     this.props.children[pathSegment.toString()] ?? null;
 
+  public readonly withoutTemplateForHTTPMethod = (httpMethod: HTTPMethod) => {
+    const { [httpMethod.toString()]: _, ...templates } = this.props.templates;
+    return new Node({ ...this.props, templates });
+  };
+
   public readonly withAddedChild = (
     pathSegment: PathSegment,
     addedChild: Node,
@@ -67,6 +99,11 @@ export class Node {
         [pathSegment.toString()]: addedChild,
       },
     });
+
+  public readonly modifyAtPath = (
+    path: Path,
+    modifierFn: (node: Node) => Node,
+  ): Node => modifyNodeRecursively(this, [...path], modifierFn);
 
   public readonly getWildcard = () => this.props.wildcard;
 
