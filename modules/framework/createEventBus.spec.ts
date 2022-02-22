@@ -18,15 +18,16 @@
 
 /**
  * @author Wilhelm Behncke <wilhelm.behncke@openformation.io>
- *
  */
 
-import { spy, assertSpyCall } from "../../deps-dev/mock.ts";
+import { assertEquals, assertStrictEquals } from "../../deps-dev/asserts.ts";
+import { assertSpyCall, spy } from "../../deps-dev/mock.ts";
 
 import { createEventBus } from "./createEventBus.ts";
 
 Deno.test({
-  name: "creates an event bus that allows to dispatch and subscribe to events",
+  name:
+    "`createEventBus` creates an event bus that allows to dispatch and subscribe to events",
   fn: () => {
     const eventBus = createEventBus();
     const subscriber = spy();
@@ -39,5 +40,29 @@ Deno.test({
     eventBus.dispatch(event);
 
     assertSpyCall(subscriber, 0, { args: [event] });
+  },
+});
+
+Deno.test({
+  name: "`EventBus` implements async iterator protocol",
+  fn: async () => {
+    const eventBus = createEventBus();
+    const event = {
+      type: "LightsaberAppeared",
+      payload: { good: "question", for: "another time" },
+    };
+
+    setTimeout(() => eventBus.dispatch(event), 100);
+    setTimeout(() => eventBus.dispatch(event), 200);
+    setTimeout(() => eventBus.dispatch(event), 300);
+
+    let numberOfReceivedEvents = 0;
+    for await (const receivedEvent of eventBus) {
+      assertStrictEquals(receivedEvent, event);
+      numberOfReceivedEvents++;
+      if (numberOfReceivedEvents >= 3) break;
+    }
+
+    assertEquals(numberOfReceivedEvents, 3);
   },
 });

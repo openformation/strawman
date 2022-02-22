@@ -18,7 +18,6 @@
 
 /**
  * @author Wilhelm Behncke <wilhelm.behncke@openformation.io>
- *
  */
 
 type EventShape = {
@@ -27,10 +26,10 @@ type EventShape = {
 };
 
 export type Subscriber<E extends EventShape> = (
-  event: E
+  event: E,
 ) => void | Promise<void>;
 
-export type EventBus<E extends EventShape> = {
+export type EventBus<E extends EventShape> = AsyncIterable<E> & {
   dispatch: (event: E) => void;
   subscribe: (subscriber: Subscriber<E>) => () => void;
 };
@@ -44,5 +43,31 @@ export const createEventBus = <E extends EventShape>(): EventBus<E> => {
     return () => subscribers.delete(subscriber);
   };
 
-  return { dispatch, subscribe };
+  return {
+    dispatch,
+    subscribe,
+    [Symbol.asyncIterator]: () => {
+      let unsubscribe: null | (() => boolean) = null;
+
+      return {
+        next: () =>
+          new Promise((resolve) => {
+            unsubscribe = subscribe(
+              (value) => {
+                unsubscribe?.();
+                resolve({ value, done: false });
+              },
+            );
+          }),
+        return: (value) => {
+          unsubscribe?.();
+          return Promise.resolve({ value, done: true });
+        },
+        throw: (error) => {
+          unsubscribe?.();
+          return Promise.reject(error);
+        },
+      };
+    },
+  };
 };
