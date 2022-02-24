@@ -34,6 +34,8 @@ export const createStrategy = <M extends Record<string, unknown>>(
   const alternativeKeyRef = createRef(initialAlternativeKey as keyof M);
 
   return Object.freeze({
+    is: (alternativeKey: keyof M) =>
+      alternativeKeyRef.current === alternativeKey,
     get current(): M[keyof M] {
       return mapOfAlternatives[alternativeKeyRef.current!] as M[keyof M];
     },
