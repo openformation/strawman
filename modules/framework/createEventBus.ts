@@ -20,6 +20,8 @@
  * @author Wilhelm Behncke <wilhelm.behncke@openformation.io>
  */
 
+import { createSignal } from "./createSignal.ts";
+
 type EventShape = {
   type: string;
   payload: Record<string, unknown>;
@@ -35,9 +37,12 @@ export type EventBus<E extends EventShape> = AsyncIterable<E> & {
 };
 
 export const createEventBus = <E extends EventShape>(): EventBus<E> => {
+  const signal = createSignal<E>();
   const subscribers = new Set<Subscriber<E>>();
-  const dispatch = (event: E) =>
+  const dispatch = (event: E) => {
+    signal.send(event);
     subscribers.forEach((subscriber) => subscriber(event));
+  };
   const subscribe = (subscriber: Subscriber<E>) => {
     subscribers.add(subscriber);
     return () => subscribers.delete(subscriber);
@@ -46,28 +51,6 @@ export const createEventBus = <E extends EventShape>(): EventBus<E> => {
   return {
     dispatch,
     subscribe,
-    [Symbol.asyncIterator]: () => {
-      let unsubscribe: null | (() => boolean) = null;
-
-      return {
-        next: () =>
-          new Promise((resolve) => {
-            unsubscribe = subscribe(
-              (value) => {
-                unsubscribe?.();
-                resolve({ value, done: false });
-              },
-            );
-          }),
-        return: (value) => {
-          unsubscribe?.();
-          return Promise.resolve({ value, done: true });
-        },
-        throw: (error) => {
-          unsubscribe?.();
-          return Promise.reject(error);
-        },
-      };
-    },
+    [Symbol.asyncIterator]: signal[Symbol.asyncIterator],
   };
 };
