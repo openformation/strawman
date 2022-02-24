@@ -24,37 +24,45 @@ import { createSubscription } from "../framework/createSubscription.ts";
 
 import { LogEvent } from "./LogEvent.ts";
 import { ErrorDTO } from "./ErrorDTO.ts";
-import { createOutputStream, OutputStream } from "./createOutputStream.ts";
+import { createOutputFromWriter, Output } from "./createOutput.ts";
 
 export const createLogPrinter = (options?: {
-  stream?: {
-    info?: Deno.WriterSync;
-    incoming?: Deno.WriterSync;
-    outgoing?: Deno.WriterSync;
-    warning?: Deno.WriterSync;
-    error?: Deno.WriterSync;
-    fatal?: Deno.WriterSync;
-    debug?: Deno.WriterSync;
+  output?: {
+    default?: Output;
+    info?: Output;
+    incoming?: Output;
+    outgoing?: Output;
+    warning?: Output;
+    error?: Output;
+    fatal?: Output;
+    debug?: Output;
   };
 }) => {
-  const stream = Object.freeze({
-    info: createOutputStream(options?.stream?.info ?? Deno.stdout),
-    incoming: createOutputStream(options?.stream?.incoming ?? Deno.stdout),
-    outgoing: createOutputStream(options?.stream?.outgoing ?? Deno.stdout),
-    warning: createOutputStream(options?.stream?.warning ?? Deno.stderr),
-    error: createOutputStream(options?.stream?.error ?? Deno.stderr),
-    fatal: createOutputStream(options?.stream?.fatal ?? Deno.stderr),
-    debug: createOutputStream(options?.stream?.debug ?? Deno.stderr),
+  const output = Object.freeze({
+    info: options?.output?.info ?? options?.output?.default ??
+      createOutputFromWriter(Deno.stdout),
+    incoming: options?.output?.incoming ?? options?.output?.default ??
+      createOutputFromWriter(Deno.stdout),
+    outgoing: options?.output?.outgoing ?? options?.output?.default ??
+      createOutputFromWriter(Deno.stdout),
+    warning: options?.output?.warning ?? options?.output?.default ??
+      createOutputFromWriter(Deno.stderr),
+    error: options?.output?.error ?? options?.output?.default ??
+      createOutputFromWriter(Deno.stderr),
+    fatal: options?.output?.fatal ?? options?.output?.default ??
+      createOutputFromWriter(Deno.stderr),
+    debug: options?.output?.debug ?? options?.output?.default ??
+      createOutputFromWriter(Deno.stderr),
   });
 
   return createSubscription<LogEvent>()
     .on("http://openformation.io/strawman-logger/LogInfo", (event) => {
-      stream.info.println(`[⚐] ${event.payload.message}`);
+      output.info.println(`[⚐] ${event.payload.message}`);
     })
     .on(
       "http://openformation.io/strawman-logger/LogIncoming",
       (event) => {
-        stream.incoming.println(
+        output.incoming.println(
           `[➘] [${event.payload.request.method}] ${
             new URL(event.payload.request.url).pathname
           }`,
@@ -62,17 +70,17 @@ export const createLogPrinter = (options?: {
 
         const [firstLine, ...lines] = event.payload.message.split("\n");
 
-        stream.incoming.println(`  → ${firstLine}`);
+        output.incoming.println(`  → ${firstLine}`);
 
         for (const line of lines) {
-          stream.incoming.println(`    ${line}`);
+          output.incoming.println(`    ${line}`);
         }
       },
     )
     .on(
       "http://openformation.io/strawman-logger/LogOutgoing",
       (event) => {
-        stream.outgoing.println(
+        output.outgoing.println(
           `[➚] [${event.payload.request.method}] [${event.payload.response.status}] ${
             new URL(event.payload.request.url).pathname
           }`,
@@ -80,34 +88,34 @@ export const createLogPrinter = (options?: {
 
         const [firstLine, ...lines] = event.payload.message.split("\n");
 
-        stream.outgoing.println(`  → ${firstLine}`);
+        output.outgoing.println(`  → ${firstLine}`);
 
         for (const line of lines) {
-          stream.outgoing.println(`    ${line}`);
+          output.outgoing.println(`    ${line}`);
         }
       },
     )
     .on(
       "http://openformation.io/strawman-logger/LogWarning",
       (event) => {
-        stream.warning.println(`[⚠] ${event.payload.message}`);
+        output.warning.println(`[⚠] ${event.payload.message}`);
       },
     )
     .on(
       "http://openformation.io/strawman-logger/LogError",
       (event) => {
         const printErrorDTORecursively = makePrintErrorDTORecursively({
-          stream: stream.error,
+          output: output.error,
         });
 
         if (event.payload.request) {
-          stream.error.println(
+          output.error.println(
             `[☓] [${event.payload.request.method}] ${
               new URL(event.payload.request.url).pathname
             }`,
           );
         } else {
-          stream.error.println(`[☓] An error occurred:`);
+          output.error.println(`[☓] An error occurred:`);
         }
 
         printErrorDTORecursively(event.payload.error, 1);
@@ -117,26 +125,26 @@ export const createLogPrinter = (options?: {
       "http://openformation.io/strawman-logger/LogFatal",
       (event) => {
         const printErrorDTORecursively = makePrintErrorDTORecursively({
-          stream: stream.fatal,
+          output: output.fatal,
         });
 
-        stream.fatal.println("!".repeat(80));
-        stream.fatal.println("");
+        output.fatal.println("!".repeat(80));
+        output.fatal.println("");
 
         if (event.payload.request) {
-          stream.fatal.println(
+          output.fatal.println(
             `[FATAL] [${event.payload.request.method}] ${
               new URL(event.payload.request.url).pathname
             }`,
           );
         } else {
-          stream.fatal.println(`[FATAL]: `);
+          output.fatal.println(`[FATAL]: `);
         }
 
         printErrorDTORecursively(event.payload.error, 1);
 
-        stream.fatal.println("");
-        stream.fatal.println("!".repeat(80));
+        output.fatal.println("");
+        output.fatal.println("!".repeat(80));
       },
     )
     .on(
@@ -144,20 +152,20 @@ export const createLogPrinter = (options?: {
       (event) => {
         const [firstLine, ...lines] = event.payload.message.split("\n");
 
-        stream.debug.println(`[🚧] ${firstLine}`);
+        output.debug.println(`[🚧] ${firstLine}`);
         for (const line of lines) {
-          stream.debug.println(`    ${line}`);
+          output.debug.println(`    ${line}`);
         }
       },
     );
 };
 
-const makePrintErrorDTORecursively = (deps: { stream: OutputStream }) => {
+const makePrintErrorDTORecursively = (deps: { output: Output }) => {
   const printErrorDTORecursively = (
     dto: ErrorDTO,
     indentation: number,
   ) => {
-    deps.stream.println(
+    deps.output.println(
       `${"  ".repeat(indentation)}→ ${dto.message}`,
     );
 
@@ -166,7 +174,7 @@ const makePrintErrorDTORecursively = (deps: { stream: OutputStream }) => {
     } else {
       dto.trace.forEach(
         (line) => {
-          deps.stream.println(`${"  ".repeat(indentation)}   ${line}`);
+          deps.output.println(`${"  ".repeat(indentation)}   ${line}`);
         },
       );
     }

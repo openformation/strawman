@@ -98,5 +98,6 @@ export const createLogger = () => {
         LogEvent.LogDebug({ message }),
       ),
     subscribe: eventBus.subscribe,
+    [Symbol.asyncIterator]: eventBus[Symbol.asyncIterator],
   });
 };

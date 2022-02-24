@@ -24,3 +24,5 @@ export type { ILogger } from "./createLogger.ts";
 export { createLogger } from "./createLogger.ts";
 
 export { createLogPrinter } from "./createLogPrinter.ts";
+
+export { createAsyncIterableOutput } from "./createOutput.ts";
