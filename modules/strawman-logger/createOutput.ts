@@ -20,12 +20,25 @@
  * @author Wilhelm Behncke <wilhelm.behncke@openformation.io>
  */
 
-export type OutputStream = ReturnType<typeof createOutputStream>;
+import { createSignal } from "../framework/createSignal.ts";
 
-export const createOutputStream = (writer: Deno.WriterSync) => {
+export type Output = {
+  println: (line: string) => void;
+};
+
+export const createOutputFromWriter = (writer: Deno.WriterSync): Output => {
   const encoder = new TextEncoder();
 
   return Object.freeze({
     println: (line: string) => writer.writeSync(encoder.encode(line + "\n")),
+  });
+};
+
+export const createAsyncIterableOutput = (): Output & AsyncIterable<string> => {
+  const signal = createSignal<string>();
+
+  return Object.freeze({
+    println: (line: string) => signal.send(line),
+    [Symbol.asyncIterator]: signal[Symbol.asyncIterator],
   });
 };
