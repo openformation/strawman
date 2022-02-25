@@ -24,16 +24,24 @@ import { createRef } from "../../framework/createRef.ts";
 import { createEventBus, Subscriber } from "../../framework/createEventBus.ts";
 import { createStrategy } from "../../framework/createStrategy.ts";
 
+import { ILogger } from "../../strawman-logger/mod.ts";
+
 import { DomainEvent } from "../domain/events/DomainEvent.ts";
 import { Node } from "../domain/model/Node.ts";
+import { NodePath } from "../domain/model/NodePath.ts";
+import { HTTPMethod } from "../domain/model/HTTPMethod.ts";
+import { makeDeleteTemplate } from "../domain/service/deleteTemplate.ts";
 
 import { makeReplayRequest } from "./service/replayRequest.ts";
 import { makeCaptureRequest } from "./service/captureRequest.ts";
+
+export type Strawman = ReturnType<typeof makeStrawman>;
 
 export const makeStrawman = (deps: {
   urlOfProxiedService: URL;
   virtualServiceTree: null | Node;
   subscribers: Subscriber<DomainEvent>[];
+  logger: ILogger;
 }) => {
   const virtualServiceTreeRef = createRef(deps.virtualServiceTree);
   const eventBus = createEventBus<DomainEvent>();
@@ -51,13 +59,36 @@ export const makeStrawman = (deps: {
       urlOfProxiedService: deps.urlOfProxiedService,
     }),
   });
+  const deleteTemplate = makeDeleteTemplate({
+    eventBus,
+  });
 
   const strawman = Object.freeze({
     virtualServiceTreeRef,
     eventBus,
-    setMode: requestHandler.set,
+    setMode: (mode: "replay" | "capture") => {
+      if (!requestHandler.is(mode)) {
+        requestHandler.set(mode);
+        deps.logger.info(`Strawman is in ${mode} mode.`);
+        return true;
+      }
+
+      return false;
+    },
     handleRequest: (request: Request) =>
       requestHandler.current!({ aRequest: request }),
+    deleteTemplate: (method: string, path: string) => {
+      if (virtualServiceTreeRef.current !== null) {
+        deleteTemplate({
+          aRootNode: virtualServiceTreeRef.current,
+          anHTTPMethod: HTTPMethod.fromString(method),
+          aPath: NodePath.fromString(path),
+        });
+        return true;
+      }
+
+      return false;
+    },
   });
 
   return strawman;
