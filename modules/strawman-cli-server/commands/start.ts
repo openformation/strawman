@@ -34,7 +34,7 @@ import { makeWatchForChanges } from "../../strawman-core/infrastructure/fs/watch
 import { makeStrawman } from "../../strawman-core/application/strawman.ts";
 
 import { makeInitializeVirtualServiceTree } from "../lib/initializeVirtualServiceTree.ts";
-import { makeStartHttpServer } from "../lib/startHttpServer.ts";
+import { makeStartStrawmanServer } from "../lib/http/startStrawmanServer.ts";
 
 export const shortDescription =
   "Start a strawman server to simulate or capture HTTP responses of a remote service";
@@ -96,6 +96,7 @@ export const run = async () => {
     urlOfProxiedService: parameters.theRemoteRootUri,
     virtualServiceTree,
     subscribers: [saveVirtualServiceTreeToDirectory],
+    logger,
   });
 
   strawman.setMode(parameters.theMode);
@@ -117,13 +118,12 @@ export const run = async () => {
     );
   }
 
-  const startHttpServer = makeStartHttpServer({
+  const startStrawmanServer = makeStartStrawmanServer({
+    strawman,
     logger,
   });
-  await startHttpServer({
-    theLocalRootUri: parameters.theLocalRootUri,
-    aRequestHandler: strawman.handleRequest,
-  });
+
+  await startStrawmanServer(parameters.theLocalRootUri);
 };
 
 const parseParametersFromCliArguments = (args: string[]): CommandParameters => {
