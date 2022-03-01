@@ -64,9 +64,9 @@ export const makeAddSnapshot = (deps: { eventBus: EventBus<DomainEvent> }) => {
     const addSnapshotRecursively = (given: {
       aParentPath: Path;
       aParentNode: Node;
-      remainingNodePathSegments: PathSegment[];
+      remainingPathSegments: PathSegment[];
     }): Node => {
-      const [head, ...tail] = given.remainingNodePathSegments;
+      const [head, ...tail] = given.remainingPathSegments;
       const path = given.aParentPath.append(head);
 
       let node = given.aParentNode.getChild(head);
@@ -76,7 +76,7 @@ export const makeAddSnapshot = (deps: { eventBus: EventBus<DomainEvent> }) => {
         node = addSnapshotRecursively({
           aParentPath: path,
           aParentNode: node ?? Node.blank(),
-          remainingNodePathSegments: tail,
+          remainingPathSegments: tail,
         });
       } else {
         node = (node ?? Node.blank()).withTemplateForHTTPMethod(
@@ -100,7 +100,7 @@ export const makeAddSnapshot = (deps: { eventBus: EventBus<DomainEvent> }) => {
     const nextRootNode = addSnapshotRecursively({
       aParentPath: Path.root,
       aParentNode: given.aRootNode,
-      remainingNodePathSegments: [...given.aPath],
+      remainingPathSegments: [...given.aPath],
     });
 
     for (const { path, node: addedNode } of createdNodes.reverse()) {

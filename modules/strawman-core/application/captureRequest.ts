@@ -25,7 +25,7 @@ import { Exception } from "../../framework/exception.ts";
 
 import { HTTPMethod } from "../domain/model/HTTPMethod.ts";
 import { Snapshot } from "../domain/model/Snapshot.ts";
-import { NodePath } from "../domain/model/NodePath.ts";
+import { Path } from "../domain/model/Path.ts";
 import { Node } from "../domain/model/Node.ts";
 import { DomainEvent } from "../domain/events/DomainEvent.ts";
 import { makeCreateTree } from "../domain/service/createTree.ts";
@@ -53,13 +53,13 @@ export const makeCaptureRequest = (deps: {
     proxyUrl.pathname = requestUrl.pathname;
 
     const httpMethodFromRequest = HTTPMethod.ofRequest(given.aRequest);
-    const nodePathFromRequest = NodePath.fromString(requestUrl.pathname);
+    const pathFromRequest = Path.fromString(requestUrl.pathname);
 
     if (rootNode === null) rootNode = createTree();
 
     let routingResult = route({
       aRootNode: rootNode,
-      aPath: nodePathFromRequest,
+      aPath: pathFromRequest,
       anHTTPMethod: httpMethodFromRequest,
     });
     if (routingResult === null) {
@@ -67,17 +67,17 @@ export const makeCaptureRequest = (deps: {
         await fetch(proxyUrl.toString(), {
           method: given.aRequest.method,
           headers: given.aRequest.headers,
-        })
+        }),
       );
       rootNode = addSnapshot({
         aRootNode: rootNode,
-        aPath: nodePathFromRequest,
+        aPath: pathFromRequest,
         aSnapShot: snapshot,
         anHTTPMethod: httpMethodFromRequest,
       });
       routingResult = route({
         aRootNode: rootNode,
-        aPath: nodePathFromRequest,
+        aPath: pathFromRequest,
         anHTTPMethod: httpMethodFromRequest,
       });
     }

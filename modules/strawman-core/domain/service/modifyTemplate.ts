@@ -49,9 +49,9 @@ export const makeModifyTemplate = (deps: {
     const modifyTemplateRecursively = (given: {
       aParentPath: Path;
       aParentNode: Node;
-      remainingNodePathSegments: PathSegment[];
+      remainingPathSegments: PathSegment[];
     }): Node => {
-      const [head, ...tail] = given.remainingNodePathSegments;
+      const [head, ...tail] = given.remainingPathSegments;
 
       if (head) {
         const path = given.aParentPath.append(head);
@@ -66,7 +66,7 @@ export const makeModifyTemplate = (deps: {
             modifyTemplateRecursively({
               aParentPath: path,
               aParentNode: node!,
-              remainingNodePathSegments: tail,
+              remainingPathSegments: tail,
             }),
           );
         } else {
@@ -100,7 +100,7 @@ export const makeModifyTemplate = (deps: {
     const nextRootNode = modifyTemplateRecursively({
       aParentPath: Path.root,
       aParentNode: given.aRootNode,
-      remainingNodePathSegments: [...given.aPath],
+      remainingPathSegments: [...given.aPath],
     });
 
     deps.eventBus.dispatch(
