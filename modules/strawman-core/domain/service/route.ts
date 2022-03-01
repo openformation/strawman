@@ -36,9 +36,9 @@ export const route = (given: {
   let node: null | Node = given.aRootNode;
   let args: Arguments = Arguments.empty();
 
-  for (const nodeName of given.aPath) {
+  for (const pathSegment of given.aPath) {
     const parent = node as Node;
-    node = parent.getChild(nodeName);
+    node = parent.getChild(pathSegment);
     if (node === null) {
       const wildcard = parent.getWildcard();
       if (wildcard === null) {
@@ -46,7 +46,7 @@ export const route = (given: {
       }
 
       node = wildcard.getNode();
-      args = args.withAddedArgument(wildcard.makeArgument(nodeName));
+      args = args.withAddedArgument(wildcard.makeArgument(pathSegment));
     }
   }
 
