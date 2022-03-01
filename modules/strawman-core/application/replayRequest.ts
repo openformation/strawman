@@ -26,7 +26,7 @@ import { Exception } from "../../framework/exception.ts";
 
 import { DomainEvent } from "../domain/events/DomainEvent.ts";
 import { HTTPMethod } from "../domain/model/HTTPMethod.ts";
-import { NodePath } from "../domain/model/NodePath.ts";
+import { Path } from "../domain/model/Path.ts";
 import { Node } from "../domain/model/Node.ts";
 import { route } from "../domain/service/route.ts";
 import { makeModifyTemplate } from "../domain/service/modifyTemplate.ts";
@@ -68,7 +68,7 @@ export const makeReplayRequest = (deps: {
     if (virtualServiceTreeRef.current !== null) {
       const routingResult = route({
         aRootNode: virtualServiceTreeRef.current,
-        aPath: NodePath.fromString(requestUrl.pathname),
+        aPath: Path.fromString(requestUrl.pathname),
         anHTTPMethod: httpMethodFromRequest,
       });
 
