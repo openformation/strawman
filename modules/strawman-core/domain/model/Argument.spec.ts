@@ -26,7 +26,7 @@ import { Argument } from "./Argument.ts";
 import { PathSegment } from "./PathSegment.ts";
 
 Deno.test("`Argument`", async (t) => {
-  await t.step("can be created from NodeName and string value", () => {
+  await t.step("can be created from PathSegment and string value", () => {
     assert(
       Argument.create(PathSegment.fromString("foo"), "bar") instanceof Argument,
     );
