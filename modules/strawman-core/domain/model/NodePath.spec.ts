@@ -18,7 +18,6 @@
 
 /**
  * @author Wilhelm Behncke <wilhelm.behncke@openformation.io>
- *
  */
 
 import {
@@ -27,7 +26,7 @@ import {
   assertThrows,
 } from "../../../../deps-dev/asserts.ts";
 
-import { NodeName } from "./NodeName.ts";
+import { PathSegment } from "./PathSegment.ts";
 import { NodePath } from "./NodePath.ts";
 
 Deno.test({
@@ -43,15 +42,15 @@ Deno.test({
   fn: () => {
     assert(NodePath.fromString("/") === NodePath.root);
     assert(
-      NodePath.root.append(NodeName.fromString("some")) ===
-        NodePath.fromString("/some")
+      NodePath.root.append(PathSegment.fromString("some")) ===
+        NodePath.fromString("/some"),
     );
     assert(
-      NodePath.fromString("/some/path") === NodePath.fromString("/some/path")
+      NodePath.fromString("/some/path") === NodePath.fromString("/some/path"),
     );
     assert(
       NodePath.fromString("/some/path") ===
-        NodePath.fromString("/some").append(NodeName.fromString("path"))
+        NodePath.fromString("/some").append(PathSegment.fromString("path")),
     );
   },
 });
@@ -80,9 +79,9 @@ Deno.test({
 
     assertStrictEquals(segments.length, 3);
 
-    assertStrictEquals(segments[0], NodeName.fromString("some"));
-    assertStrictEquals(segments[1], NodeName.fromString("node"));
-    assertStrictEquals(segments[2], NodeName.fromString("path"));
+    assertStrictEquals(segments[0], PathSegment.fromString("some"));
+    assertStrictEquals(segments[1], PathSegment.fromString("node"));
+    assertStrictEquals(segments[2], PathSegment.fromString("path"));
   },
 });
 
@@ -108,7 +107,7 @@ Deno.test({
   name: "`NodePath` can be appended",
   fn: () => {
     const path = NodePath.fromString("/some/node/path");
-    const appendedPath = path.append(NodeName.fromString("appendix"));
+    const appendedPath = path.append(PathSegment.fromString("appendix"));
 
     assert(appendedPath instanceof NodePath);
     assert(appendedPath !== path);

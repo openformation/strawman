@@ -18,18 +18,17 @@
 
 /**
  * @author Wilhelm Behncke <wilhelm.behncke@openformation.io>
- *
  */
 
 import { assertEquals, assertThrows } from "../../../../deps-dev/asserts.ts";
-import { spy, assertSpyCall } from "../../../../deps-dev/mock.ts";
+import { assertSpyCall, spy } from "../../../../deps-dev/mock.ts";
 
 import { createEventBus } from "../../../framework/createEventBus.ts";
 
 import { DomainEvent } from "../events/DomainEvent.ts";
 import { HTTPMethod } from "../model/HTTPMethod.ts";
 import { Template } from "../model/Template.ts";
-import { NodeName } from "../model/NodeName.ts";
+import { PathSegment } from "../model/PathSegment.ts";
 import { NodePath } from "../model/NodePath.ts";
 import { Node } from "../model/Node.ts";
 
@@ -40,34 +39,35 @@ const level1Template = Template.withCallback(() => "");
 const level2Template = Template.withCallback(() => "");
 const level3Template = Template.withCallback(() => "");
 const tree = Node.blank()
-  .withAddedChild(NodeName.fromString("level-1-1"), Node.blank())
+  .withAddedChild(PathSegment.fromString("level-1-1"), Node.blank())
   .withAddedChild(
-    NodeName.fromString("level-1-2"),
+    PathSegment.fromString("level-1-2"),
     Node.blank()
       .withAddedChild(
-        NodeName.fromString("level-2-1"),
-        Node.blank().withTemplateForHTTPMethod(HTTPMethod.POST, level2Template)
+        PathSegment.fromString("level-2-1"),
+        Node.blank().withTemplateForHTTPMethod(HTTPMethod.POST, level2Template),
       )
-      .withAddedChild(NodeName.fromString("level-2-2"), Node.blank())
+      .withAddedChild(PathSegment.fromString("level-2-2"), Node.blank())
       .withAddedChild(
-        NodeName.fromString("level-2-3"),
+        PathSegment.fromString("level-2-3"),
         Node.blank().withAddedChild(
-          NodeName.fromString("level-3-1"),
+          PathSegment.fromString("level-3-1"),
           Node.blank().withTemplateForHTTPMethod(
             HTTPMethod.DELETE,
-            level3Template
-          )
-        )
-      )
+            level3Template,
+          ),
+        ),
+      ),
   )
   .withAddedChild(
-    NodeName.fromString("level-1-3"),
-    Node.blank().withTemplateForHTTPMethod(HTTPMethod.GET, level1Template)
+    PathSegment.fromString("level-1-3"),
+    Node.blank().withTemplateForHTTPMethod(HTTPMethod.GET, level1Template),
   )
   .withTemplateForHTTPMethod(HTTPMethod.PATCH, rootTemplate);
 
 Deno.test({
-  name: "`modifyTemplate` modifies known templates at any level of a virtual service tree",
+  name:
+    "`modifyTemplate` modifies known templates at any level of a virtual service tree",
   fn: () => {
     const eventBus = createEventBus<DomainEvent>();
     const modifyTemplate = makeModifyTemplate({ eventBus });
@@ -82,7 +82,7 @@ Deno.test({
 
     assertEquals(
       nextTree.getTemplateForHTTPMethod(HTTPMethod.PATCH),
-      modifiedTemplate
+      modifiedTemplate,
     );
 
     nextTree = modifyTemplate({
@@ -94,9 +94,9 @@ Deno.test({
 
     assertEquals(
       nextTree
-        .getChild(NodeName.fromString("level-1-3"))
+        .getChild(PathSegment.fromString("level-1-3"))
         ?.getTemplateForHTTPMethod(HTTPMethod.GET),
-      modifiedTemplate
+      modifiedTemplate,
     );
 
     nextTree = modifyTemplate({
@@ -108,10 +108,10 @@ Deno.test({
 
     assertEquals(
       nextTree
-        .getChild(NodeName.fromString("level-1-2"))
-        ?.getChild(NodeName.fromString("level-2-1"))
+        .getChild(PathSegment.fromString("level-1-2"))
+        ?.getChild(PathSegment.fromString("level-2-1"))
         ?.getTemplateForHTTPMethod(HTTPMethod.POST),
-      modifiedTemplate
+      modifiedTemplate,
     );
 
     nextTree = modifyTemplate({
@@ -123,17 +123,18 @@ Deno.test({
 
     assertEquals(
       nextTree
-        .getChild(NodeName.fromString("level-1-2"))
-        ?.getChild(NodeName.fromString("level-2-3"))
-        ?.getChild(NodeName.fromString("level-3-1"))
+        .getChild(PathSegment.fromString("level-1-2"))
+        ?.getChild(PathSegment.fromString("level-2-3"))
+        ?.getChild(PathSegment.fromString("level-3-1"))
         ?.getTemplateForHTTPMethod(HTTPMethod.DELETE),
-      modifiedTemplate
+      modifiedTemplate,
     );
   },
 });
 
 Deno.test({
-  name: "`modifyTemplate` throws if a template cannot be found at the given path",
+  name:
+    "`modifyTemplate` throws if a template cannot be found at the given path",
   fn: () => {
     const eventBus = createEventBus<DomainEvent>();
     const modifyTemplate = makeModifyTemplate({ eventBus });
@@ -150,7 +151,8 @@ Deno.test({
 });
 
 Deno.test({
-  name: "`modifyTemplate` throws if a template cannot be found for the given HTTPMethod",
+  name:
+    "`modifyTemplate` throws if a template cannot be found for the given HTTPMethod",
   fn: () => {
     const eventBus = createEventBus<DomainEvent>();
     const modifyTemplate = makeModifyTemplate({ eventBus });
@@ -175,7 +177,8 @@ Deno.test({
 });
 
 Deno.test({
-  name: "`modifyTemplate` emits a SnapshotWasModified event when applied at the root level",
+  name:
+    "`modifyTemplate` emits a SnapshotWasModified event when applied at the root level",
   fn: () => {
     const eventBus = createEventBus<DomainEvent>();
     const subscriber = spy();
@@ -208,7 +211,8 @@ Deno.test({
 });
 
 Deno.test({
-  name: "`modifyTemplate` emits a SnapshotWasModified event when applied deep in the virtual service tree",
+  name:
+    "`modifyTemplate` emits a SnapshotWasModified event when applied deep in the virtual service tree",
   fn: () => {
     const eventBus = createEventBus<DomainEvent>();
     const subscriber = spy();
@@ -233,9 +237,9 @@ Deno.test({
           path: NodePath.fromString("/level-1-2/level-2-3/level-3-1"),
           httpMethod: HTTPMethod.DELETE,
           parentNode: nextTree
-            .getChild(NodeName.fromString("level-1-2"))
-            ?.getChild(NodeName.fromString("level-2-3"))
-            ?.getChild(NodeName.fromString("level-3-1"))!,
+            .getChild(PathSegment.fromString("level-1-2"))
+            ?.getChild(PathSegment.fromString("level-2-3"))
+            ?.getChild(PathSegment.fromString("level-3-1"))!,
           template: modifiedTemplate,
         }),
       ],

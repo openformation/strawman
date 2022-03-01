@@ -29,7 +29,7 @@ import { createRef } from "../../../framework/createRef.ts";
 
 import { DomainEvent } from "../../domain/events/DomainEvent.ts";
 import { HTTPMethod } from "../../domain/model/HTTPMethod.ts";
-import { NodeName } from "../../domain/model/NodeName.ts";
+import { PathSegment } from "../../domain/model/PathSegment.ts";
 import { NodePath } from "../../domain/model/NodePath.ts";
 import { Node } from "../../domain/model/Node.ts";
 import { Template } from "../../domain/model/Template.ts";
@@ -56,11 +56,11 @@ Deno.test("`watchForChanges`", async (t) => {
   await t.step("it recognizes changes to existing template files", async () => {
     const tree = Node.blank()
       .withAddedChild(
-        NodeName.fromString("some"),
+        PathSegment.fromString("some"),
         Node.blank().withAddedChild(
-          NodeName.fromString("deeper"),
+          PathSegment.fromString("deeper"),
           Node.blank().withAddedChild(
-            NodeName.fromString("path"),
+            PathSegment.fromString("path"),
             Node.blank().withTemplateForHTTPMethod(
               HTTPMethod.POST,
               Template.withCallback(() => ""),

@@ -18,20 +18,19 @@
 
 /**
  * @author Wilhelm Behncke <wilhelm.behncke@openformation.io>
- *
  */
 
-import { NodeName } from "./NodeName.ts";
+import { PathSegment } from "./PathSegment.ts";
 
 export class Argument {
   private constructor(
     private readonly props: {
-      readonly name: NodeName;
+      readonly name: PathSegment;
       readonly value: string;
-    }
+    },
   ) {}
 
-  public static readonly create = (name: NodeName, value: string) =>
+  public static readonly create = (name: PathSegment, value: string) =>
     new Argument({ name, value });
 
   public readonly toEntry = () =>

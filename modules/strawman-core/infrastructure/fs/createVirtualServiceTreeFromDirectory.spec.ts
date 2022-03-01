@@ -30,13 +30,14 @@ import * as path from "../../../../deps/path.ts";
 import { Exception } from "../../../framework/exception.ts";
 
 import { HTTPMethod } from "../../domain/model/HTTPMethod.ts";
-import { NodeName } from "../../domain/model/NodeName.ts";
+import { PathSegment } from "../../domain/model/PathSegment.ts";
 
 import { makeImportTemplate } from "./importTemplate.ts";
 import { makeCreateVirtualServiceTreeFromDirectory } from "./createVirtualServiceTreeFromDirectory.ts";
 
 Deno.test({
-  name: "`createVirtualServiceTreeFromDirectory` creates a virtual service tree from the given directory",
+  name:
+    "`createVirtualServiceTreeFromDirectory` creates a virtual service tree from the given directory",
   fn: async () => {
     const createVirtualServiceTreeFromDirectory =
       makeCreateVirtualServiceTreeFromDirectory({
@@ -47,7 +48,7 @@ Deno.test({
       });
     const pathToDirectory = path.join(
       path.dirname(path.fromFileUrl(import.meta.url)),
-      "__fixtures__"
+      "__fixtures__",
     );
 
     const result = await createVirtualServiceTreeFromDirectory(pathToDirectory);
@@ -64,18 +65,18 @@ Deno.test({
           headers: {
             "content-type": "application/json",
           },
-        }
-      )
+        },
+      ),
     );
     assertResponseEquals(
       await result
-        .getChild(NodeName.fromString("some"))
-        ?.getChild(NodeName.fromString("deeper"))
-        ?.getChild(NodeName.fromString("path"))
+        .getChild(PathSegment.fromString("some"))
+        ?.getChild(PathSegment.fromString("deeper"))
+        ?.getChild(PathSegment.fromString("path"))
         ?.getTemplateForHTTPMethod(HTTPMethod.POST)
         .generateResponse(
           new Request("https://example.com", { method: "POST" }),
-          {}
+          {},
         )!,
       new Response(
         '{"requestMethod":"POST","url":"https://example.com/","message":"Foo Bar..."}',
@@ -85,18 +86,18 @@ Deno.test({
           headers: {
             "content-type": "application/json",
           },
-        }
-      )
+        },
+      ),
     );
     assertResponseEquals(
       await result
         .getWildcard()
         ?.getNode()
-        ?.getChild(NodeName.fromString("route"))
+        ?.getChild(PathSegment.fromString("route"))
         ?.getTemplateForHTTPMethod(HTTPMethod.DELETE)
         .generateResponse(
           new Request("https://example.com", { method: "DELETE" }),
-          { wildcard: "Test" }
+          { wildcard: "Test" },
         )!,
       new Response(
         '{"requestMethod":"DELETE","url":"https://example.com/","message":"Successfully deleted Test!"}',
@@ -106,14 +107,15 @@ Deno.test({
           headers: {
             "content-type": "application/json",
           },
-        }
-      )
+        },
+      ),
     );
   },
 });
 
 Deno.test({
-  name: "`createVirtualServiceTreeFromDirectory` returns an error if the given directory can not be read",
+  name:
+    "`createVirtualServiceTreeFromDirectory` returns an error if the given directory can not be read",
   fn: async () => {
     const createVirtualServiceTreeFromDirectory =
       makeCreateVirtualServiceTreeFromDirectory({
@@ -124,19 +126,20 @@ Deno.test({
       });
     const pathToDirectory = path.join(
       path.dirname(path.fromFileUrl(import.meta.url)),
-      "__fixtures__/some-nonexistent-directory"
+      "__fixtures__/some-nonexistent-directory",
     );
 
     await assertRejects(
       () => createVirtualServiceTreeFromDirectory(pathToDirectory),
       undefined,
-      `Directory "${pathToDirectory}" could not be read.`
+      `Directory "${pathToDirectory}" could not be read.`,
     );
   },
 });
 
 Deno.test({
-  name: "`createVirtualServiceTreeFromDirectory` returns an error if a template cannot be imported",
+  name:
+    "`createVirtualServiceTreeFromDirectory` returns an error if a template cannot be imported",
   fn: async () => {
     const createVirtualServiceTreeFromDirectory =
       makeCreateVirtualServiceTreeFromDirectory({
@@ -144,19 +147,20 @@ Deno.test({
           Promise.reject(
             Exception.raise({
               code: 1641391455,
-              message: `Expected "myTemplate.ts" to export a function, but got "string" instead.`,
-            })
+              message:
+                `Expected "myTemplate.ts" to export a function, but got "string" instead.`,
+            }),
           ),
       });
     const pathToDirectory = path.join(
       path.dirname(path.fromFileUrl(import.meta.url)),
-      "__fixtures__/some"
+      "__fixtures__/some",
     );
 
     await assertRejects(
       () => createVirtualServiceTreeFromDirectory(pathToDirectory),
       undefined,
-      'Could not create child node "deeper".'
+      'Could not create child node "deeper".',
     );
   },
 });

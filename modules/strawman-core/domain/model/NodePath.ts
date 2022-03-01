@@ -18,10 +18,9 @@
 
 /**
  * @author Wilhelm Behncke <wilhelm.behncke@openformation.io>
- *
  */
 
-import { NodeName } from "./NodeName.ts";
+import { PathSegment } from "./PathSegment.ts";
 
 import { createConstraints } from "../../../framework/createConstraints.ts";
 
@@ -32,8 +31,8 @@ export const NodePathConstraints = createConstraints("NodePath");
 export class NodePath {
   private constructor(
     private readonly props: {
-      segments: NodeName[];
-    }
+      segments: PathSegment[];
+    },
   ) {}
 
   public static readonly root = new NodePath({ segments: [] });
@@ -48,8 +47,9 @@ export class NodePath {
     }
 
     NodePathConstraints.check({
-      ["`nodePathAsString` must start with a '/'"]:
-        nodePathAsString.startsWith("/"),
+      ["`nodePathAsString` must start with a '/'"]: nodePathAsString.startsWith(
+        "/",
+      ),
       ["`nodePathAsString` must not end with a '/' (except it is the root path)"]:
         !nodePathAsString.endsWith("/"),
     });
@@ -57,7 +57,7 @@ export class NodePath {
     const [, ...segmentsAsStrings] = nodePathAsString.split("/");
 
     instances[nodePathAsString] = new NodePath({
-      segments: segmentsAsStrings.map(NodeName.fromString),
+      segments: segmentsAsStrings.map(PathSegment.fromString),
     });
 
     return instances[nodePathAsString];
@@ -70,11 +70,10 @@ export class NodePath {
       }
     })(this);
 
-  public readonly append = (segment: NodeName) => {
-    const path =
-      this === NodePath.root
-        ? `/${segment.toString()}`
-        : `${this.toString()}/${segment.toString()}`;
+  public readonly append = (segment: PathSegment) => {
+    const path = this === NodePath.root
+      ? `/${segment.toString()}`
+      : `${this.toString()}/${segment.toString()}`;
 
     if (instances[path]) {
       return instances[path];

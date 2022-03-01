@@ -18,7 +18,6 @@
 
 /**
  * @author Wilhelm Behncke <wilhelm.behncke@openformation.io>
- *
  */
 
 import {
@@ -30,7 +29,7 @@ import {
 import { HTTPMethod } from "./HTTPMethod.ts";
 import { Snapshot } from "./Snapshot.ts";
 import { Template } from "./Template.ts";
-import { NodeName } from "./NodeName.ts";
+import { PathSegment } from "./PathSegment.ts";
 import { Node } from "./Node.ts";
 import { Wildcard } from "./Wildcard.ts";
 
@@ -50,12 +49,12 @@ Deno.test({
           headers: {
             "content-type": "application/json; charset=UTF-8",
           },
-        })
-      )
+        }),
+      ),
     );
     const node = Node.blank().withTemplateForHTTPMethod(
       HTTPMethod.GET,
-      template
+      template,
     );
 
     assertStrictEquals(node.getTemplateForHTTPMethod(HTTPMethod.GET), template);
@@ -67,7 +66,7 @@ Deno.test({
   fn: () => {
     assertStrictEquals(
       Node.blank().getTemplateForHTTPMethod(HTTPMethod.GET),
-      null
+      null,
     );
   },
 });
@@ -79,13 +78,13 @@ Deno.test({
     const child2 = Node.blank();
     const child3 = Node.blank();
     const node = Node.blank()
-      .withAddedChild(NodeName.fromString("child1"), child1)
-      .withAddedChild(NodeName.fromString("child2"), child2)
-      .withAddedChild(NodeName.fromString("child3"), child3);
+      .withAddedChild(PathSegment.fromString("child1"), child1)
+      .withAddedChild(PathSegment.fromString("child2"), child2)
+      .withAddedChild(PathSegment.fromString("child3"), child3);
 
-    assertStrictEquals(node.getChild(NodeName.fromString("child1")), child1);
-    assertStrictEquals(node.getChild(NodeName.fromString("child2")), child2);
-    assertStrictEquals(node.getChild(NodeName.fromString("child3")), child3);
+    assertStrictEquals(node.getChild(PathSegment.fromString("child1")), child1);
+    assertStrictEquals(node.getChild(PathSegment.fromString("child2")), child2);
+    assertStrictEquals(node.getChild(PathSegment.fromString("child3")), child3);
   },
 });
 
@@ -93,8 +92,8 @@ Deno.test({
   name: "`Node.getChild` returns null for unknown children",
   fn: () => {
     assertStrictEquals(
-      Node.blank().getChild(NodeName.fromString("someChild")),
-      null
+      Node.blank().getChild(PathSegment.fromString("someChild")),
+      null,
     );
   },
 });

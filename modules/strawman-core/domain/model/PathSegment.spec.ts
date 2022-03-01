@@ -18,40 +18,43 @@
 
 /**
  * @author Wilhelm Behncke <wilhelm.behncke@openformation.io>
- *
  */
 
 import { assert, assertThrows } from "../../../../deps-dev/asserts.ts";
 
-import { NodeName } from "./NodeName.ts";
+import { PathSegment } from "./PathSegment.ts";
 
 Deno.test({
-  name: "`NodeName` can be created from string",
+  name: "`PathSegment` can be created from string",
   fn: () => {
-    assert(NodeName.fromString("some-name") instanceof NodeName);
+    assert(PathSegment.fromString("some-name") instanceof PathSegment);
   },
 });
 
 Deno.test({
-  name: "`NodeName` is a flyweight",
+  name: "`PathSegment` is a flyweight",
   fn: () => {
     assert(
-      NodeName.fromString("some-name") === NodeName.fromString("some-name")
+      PathSegment.fromString("some-name") ===
+        PathSegment.fromString("some-name"),
     );
   },
 });
 
 Deno.test({
-  name: "`NodeName` must not be empty",
+  name: "`PathSegment` must not be empty",
   fn: () => {
-    assertThrows(() => NodeName.fromString(""));
+    assertThrows(() => PathSegment.fromString(""));
   },
 });
 
 Deno.test({
-  name: "`NodeName` must only contain characters safe to be used as a URI path segment (as per https://datatracker.ietf.org/doc/html/rfc3986#appendix-A)",
+  name:
+    "`PathSegment` must only contain characters safe to be used as a URI path segment (as per https://datatracker.ietf.org/doc/html/rfc3986#appendix-A)",
   fn: () => {
-    NodeName.fromString("-_.~!$&'()*+,;=:@abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789");
-    assertThrows(() => NodeName.fromString("thi§-©ould-bé-ä-prôbl€m"));
+    PathSegment.fromString(
+      "-_.~!$&'()*+,;=:@abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
+    );
+    assertThrows(() => PathSegment.fromString("thi§-©ould-bé-ä-prôbl€m"));
   },
 });

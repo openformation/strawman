@@ -18,17 +18,16 @@
 
 /**
  * @author Wilhelm Behncke <wilhelm.behncke@openformation.io>
- *
  */
 
 import { assertResponseEquals } from "../../../../deps-dev/asserts.ts";
-import { spy, assertSpyCall } from "../../../../deps-dev/mock.ts";
+import { assertSpyCall, spy } from "../../../../deps-dev/mock.ts";
 
 import { createEventBus } from "../../../framework/createEventBus.ts";
 
 import { DomainEvent } from "../events/DomainEvent.ts";
 import { HTTPMethod } from "../model/HTTPMethod.ts";
-import { NodeName } from "../model/NodeName.ts";
+import { PathSegment } from "../model/PathSegment.ts";
 import { NodePath } from "../model/NodePath.ts";
 import { Node } from "../model/Node.ts";
 import { Snapshot } from "../model/Snapshot.ts";
@@ -49,7 +48,7 @@ Deno.test({
         headers: {
           "Content-Type": "application/json",
         },
-      })
+      }),
     );
 
     const nextRootNode = addSnapshot({
@@ -63,13 +62,14 @@ Deno.test({
       await nextRootNode
         .getTemplateForHTTPMethod(HTTPMethod.GET)
         .generateResponse(new Request("https://example.com"), {}),
-      snapshot.toFetchResponse()
+      snapshot.toFetchResponse(),
     );
   },
 });
 
 Deno.test({
-  name: "`addSnapshot` can add snapshots to nodes at deeper levels, creating non-existent ancestors along the way",
+  name:
+    "`addSnapshot` can add snapshots to nodes at deeper levels, creating non-existent ancestors along the way",
   fn: async () => {
     const eventBus = createEventBus<DomainEvent>();
     const addSnapshot = makeAddSnapshot({ eventBus });
@@ -82,7 +82,7 @@ Deno.test({
         headers: {
           "Content-Type": "application/json",
         },
-      })
+      }),
     );
 
     const nextRootNode = addSnapshot({
@@ -94,12 +94,12 @@ Deno.test({
 
     await assertResponseEquals(
       await nextRootNode
-        .getChild(NodeName.fromString("some"))
-        ?.getChild(NodeName.fromString("deep"))
-        ?.getChild(NodeName.fromString("path"))
+        .getChild(PathSegment.fromString("some"))
+        ?.getChild(PathSegment.fromString("deep"))
+        ?.getChild(PathSegment.fromString("path"))
         ?.getTemplateForHTTPMethod(HTTPMethod.GET)
         .generateResponse(new Request("https://example.com"), {})!,
-      snapshot.toFetchResponse()
+      snapshot.toFetchResponse(),
     );
   },
 });
@@ -120,7 +120,7 @@ Deno.test({
         headers: {
           "Content-Type": "application/json",
         },
-      })
+      }),
     );
 
     eventBus.subscribe(subscriber);
@@ -147,7 +147,8 @@ Deno.test({
 });
 
 Deno.test({
-  name: "`addSnapshot` emits NodeWasAdded events for every node that's created along the way",
+  name:
+    "`addSnapshot` emits NodeWasAdded events for every node that's created along the way",
   fn: async () => {
     const eventBus = createEventBus<DomainEvent>();
     let x: null | DomainEvent = null;
@@ -165,7 +166,7 @@ Deno.test({
         headers: {
           "Content-Type": "application/json",
         },
-      })
+      }),
     );
 
     eventBus.subscribe(subscriber);
@@ -182,7 +183,7 @@ Deno.test({
         DomainEvent.NodeWasAdded({
           rootNode: nextRootNode,
           path: NodePath.fromString("/some"),
-          addedNode: nextRootNode.getChild(NodeName.fromString("some"))!,
+          addedNode: nextRootNode.getChild(PathSegment.fromString("some"))!,
         }),
       ],
     });
@@ -192,8 +193,8 @@ Deno.test({
           rootNode: nextRootNode,
           path: NodePath.fromString("/some/deep"),
           addedNode: nextRootNode
-            .getChild(NodeName.fromString("some"))
-            ?.getChild(NodeName.fromString("deep"))!,
+            .getChild(PathSegment.fromString("some"))
+            ?.getChild(PathSegment.fromString("deep"))!,
         }),
       ],
     });
@@ -203,9 +204,9 @@ Deno.test({
           rootNode: nextRootNode,
           path: NodePath.fromString("/some/deep/path"),
           addedNode: nextRootNode
-            .getChild(NodeName.fromString("some"))
-            ?.getChild(NodeName.fromString("deep"))
-            ?.getChild(NodeName.fromString("path"))!,
+            .getChild(PathSegment.fromString("some"))
+            ?.getChild(PathSegment.fromString("deep"))
+            ?.getChild(PathSegment.fromString("path"))!,
         }),
       ],
     });

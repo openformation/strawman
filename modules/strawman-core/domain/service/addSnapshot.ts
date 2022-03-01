@@ -18,13 +18,12 @@
 
 /**
  * @author Wilhelm Behncke <wilhelm.behncke@openformation.io>
- *
  */
 
 import type { EventBus } from "../../../framework/createEventBus.ts";
 
 import { DomainEvent } from "../events/DomainEvent.ts";
-import { NodeName } from "../model/NodeName.ts";
+import { PathSegment } from "../model/PathSegment.ts";
 import { NodePath } from "../model/NodePath.ts";
 import { Node } from "../model/Node.ts";
 import { HTTPMethod } from "../model/HTTPMethod.ts";
@@ -41,7 +40,7 @@ export const makeAddSnapshot = (deps: { eventBus: EventBus<DomainEvent> }) => {
     if (given.aPath === NodePath.root) {
       const nextRootNode = given.aRootNode.withTemplateForHTTPMethod(
         given.anHTTPMethod,
-        Template.fromSnapshot(given.aSnapShot)
+        Template.fromSnapshot(given.aSnapShot),
       );
 
       deps.eventBus.dispatch(
@@ -51,7 +50,7 @@ export const makeAddSnapshot = (deps: { eventBus: EventBus<DomainEvent> }) => {
           parentNode: nextRootNode,
           httpMethod: given.anHTTPMethod,
           addedSnaphot: given.aSnapShot,
-        })
+        }),
       );
 
       return nextRootNode;
@@ -65,7 +64,7 @@ export const makeAddSnapshot = (deps: { eventBus: EventBus<DomainEvent> }) => {
     const addSnapshotRecursively = (given: {
       aParentPath: NodePath;
       aParentNode: Node;
-      remainingNodePathSegments: NodeName[];
+      remainingNodePathSegments: PathSegment[];
     }): Node => {
       const [head, ...tail] = given.remainingNodePathSegments;
       const path = given.aParentPath.append(head);
@@ -82,7 +81,7 @@ export const makeAddSnapshot = (deps: { eventBus: EventBus<DomainEvent> }) => {
       } else {
         node = (node ?? Node.blank()).withTemplateForHTTPMethod(
           theHTTPMethod,
-          Template.fromSnapshot(theSnapshot)
+          Template.fromSnapshot(theSnapshot),
         );
 
         theParentNode = node;
@@ -110,7 +109,7 @@ export const makeAddSnapshot = (deps: { eventBus: EventBus<DomainEvent> }) => {
           rootNode: nextRootNode,
           path,
           addedNode,
-        })
+        }),
       );
     }
 
@@ -121,7 +120,7 @@ export const makeAddSnapshot = (deps: { eventBus: EventBus<DomainEvent> }) => {
         parentNode: theParentNode!,
         httpMethod: given.anHTTPMethod,
         addedSnaphot: given.aSnapShot,
-      })
+      }),
     );
 
     return nextRootNode;

@@ -26,7 +26,7 @@ import { castError } from "../../../framework/castError.ts";
 import { Exception } from "../../../framework/exception.ts";
 
 import { Node } from "../../domain/model/Node.ts";
-import { NodeName } from "../../domain/model/NodeName.ts";
+import { PathSegment } from "../../domain/model/PathSegment.ts";
 import { HTTPMethod } from "../../domain/model/HTTPMethod.ts";
 import { Wildcard } from "../../domain/model/Wildcard.ts";
 import { IImportTemplate } from "./importTemplate.ts";
@@ -39,7 +39,7 @@ export const makeCreateVirtualServiceTreeFromDirectory = (deps: {
   importTemplate: IImportTemplate;
 }) => {
   const createVirtualServiceTreeFromDirectory = async (
-    pathToDirectory: string
+    pathToDirectory: string,
   ): Promise<Node> => {
     let rootNode = Node.blank();
 
@@ -67,16 +67,16 @@ export const makeCreateVirtualServiceTreeFromDirectory = (deps: {
               Wildcard.create(
                 file.name.slice(1, -1),
                 await createVirtualServiceTreeFromDirectory(
-                  path.join(pathToDirectory, file.name)
-                )
-              )
+                  path.join(pathToDirectory, file.name),
+                ),
+              ),
             );
           } else {
             rootNode = rootNode.withAddedChild(
-              NodeName.fromString(file.name),
+              PathSegment.fromString(file.name),
               await createVirtualServiceTreeFromDirectory(
-                path.join(pathToDirectory, file.name)
-              )
+                path.join(pathToDirectory, file.name),
+              ),
             );
           }
         } catch (err) {
@@ -94,7 +94,7 @@ export const makeCreateVirtualServiceTreeFromDirectory = (deps: {
         try {
           rootNode = rootNode.withTemplateForHTTPMethod(
             HTTPMethod.fromString(file.name.split(".")[0]!),
-            await deps.importTemplate(pathToTemplate)
+            await deps.importTemplate(pathToTemplate),
           );
         } catch (err) {
           throw Exception.raise({

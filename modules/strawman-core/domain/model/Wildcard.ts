@@ -18,11 +18,10 @@
 
 /**
  * @author Wilhelm Behncke <wilhelm.behncke@openformation.io>
- *
  */
 
 import { Argument } from "./Argument.ts";
-import { NodeName } from "./NodeName.ts";
+import { PathSegment } from "./PathSegment.ts";
 import { Node } from "./Node.ts";
 
 export class Wildcard {
@@ -30,7 +29,7 @@ export class Wildcard {
     private readonly props: {
       readonly name: string;
       readonly node: Node;
-    }
+    },
   ) {}
 
   public static readonly create = (name: string, node: Node) =>
@@ -38,6 +37,6 @@ export class Wildcard {
 
   public readonly getNode = () => this.props.node;
 
-  public readonly makeArgument = (value: NodeName) =>
-    Argument.create(NodeName.fromString(this.props.name), value.toString());
+  public readonly makeArgument = (value: PathSegment) =>
+    Argument.create(PathSegment.fromString(this.props.name), value.toString());
 }
