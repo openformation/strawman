@@ -27,55 +27,55 @@ import {
 } from "../../../../deps-dev/asserts.ts";
 
 import { PathSegment } from "./PathSegment.ts";
-import { NodePath } from "./NodePath.ts";
+import { Path } from "./Path.ts";
 
 Deno.test({
-  name: "`NodePath` can be created from string",
+  name: "`Path` can be created from string",
   fn: () => {
-    assert(NodePath.fromString("/") instanceof NodePath);
-    assert(NodePath.fromString("/some/path") instanceof NodePath);
+    assert(Path.fromString("/") instanceof Path);
+    assert(Path.fromString("/some/path") instanceof Path);
   },
 });
 
 Deno.test({
-  name: "`NodePath` is a flyweight",
+  name: "`Path` is a flyweight",
   fn: () => {
-    assert(NodePath.fromString("/") === NodePath.root);
+    assert(Path.fromString("/") === Path.root);
     assert(
-      NodePath.root.append(PathSegment.fromString("some")) ===
-        NodePath.fromString("/some"),
+      Path.root.append(PathSegment.fromString("some")) ===
+        Path.fromString("/some"),
     );
     assert(
-      NodePath.fromString("/some/path") === NodePath.fromString("/some/path"),
+      Path.fromString("/some/path") === Path.fromString("/some/path"),
     );
     assert(
-      NodePath.fromString("/some/path") ===
-        NodePath.fromString("/some").append(PathSegment.fromString("path")),
+      Path.fromString("/some/path") ===
+        Path.fromString("/some").append(PathSegment.fromString("path")),
     );
   },
 });
 
 Deno.test({
-  name: "`NodePath` (as string) must start with a '/'",
+  name: "`Path` (as string) must start with a '/'",
   fn: () => {
-    assertThrows(() => NodePath.fromString("some-path"));
-    assertThrows(() => NodePath.fromString(""));
+    assertThrows(() => Path.fromString("some-path"));
+    assertThrows(() => Path.fromString(""));
   },
 });
 
 Deno.test({
-  name: "`NodePath` (as string) must not end with a '/'",
+  name: "`Path` (as string) must not end with a '/'",
   fn: () => {
-    assertThrows(() => NodePath.fromString("//"));
-    assertThrows(() => NodePath.fromString("/////"));
-    assertThrows(() => NodePath.fromString("/some-path/with/trailing/slash/"));
+    assertThrows(() => Path.fromString("//"));
+    assertThrows(() => Path.fromString("/////"));
+    assertThrows(() => Path.fromString("/some-path/with/trailing/slash/"));
   },
 });
 
 Deno.test({
-  name: "`NodePath` is iterable",
+  name: "`Path` is iterable",
   fn: () => {
-    const [...segments] = NodePath.fromString("/some/node/path");
+    const [...segments] = Path.fromString("/some/node/path");
 
     assertStrictEquals(segments.length, 3);
 
@@ -86,30 +86,30 @@ Deno.test({
 });
 
 Deno.test({
-  name: "`NodePath` (when root) is iterable",
+  name: "`Path` (when root) is iterable",
   fn: () => {
-    const [...segments] = NodePath.fromString("/");
+    const [...segments] = Path.fromString("/");
 
     assertStrictEquals(segments.length, 0);
   },
 });
 
 Deno.test({
-  name: "`NodePath` can be converted to string",
+  name: "`Path` can be converted to string",
   fn: () => {
-    const path = NodePath.fromString("/some/node/path");
+    const path = Path.fromString("/some/node/path");
 
     assertStrictEquals(path.toString(), "/some/node/path");
   },
 });
 
 Deno.test({
-  name: "`NodePath` can be appended",
+  name: "`Path` can be appended",
   fn: () => {
-    const path = NodePath.fromString("/some/node/path");
+    const path = Path.fromString("/some/node/path");
     const appendedPath = path.append(PathSegment.fromString("appendix"));
 
-    assert(appendedPath instanceof NodePath);
+    assert(appendedPath instanceof Path);
     assert(appendedPath !== path);
 
     assertStrictEquals(appendedPath.toString(), "/some/node/path/appendix");

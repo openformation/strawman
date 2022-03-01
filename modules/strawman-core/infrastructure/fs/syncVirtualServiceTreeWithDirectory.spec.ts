@@ -28,7 +28,7 @@ import { createEventBus } from "../../../framework/createEventBus.ts";
 import { DomainEvent } from "../../domain/events/DomainEvent.ts";
 import { HTTPMethod } from "../../domain/model/HTTPMethod.ts";
 import { PathSegment } from "../../domain/model/PathSegment.ts";
-import { NodePath } from "../../domain/model/NodePath.ts";
+import { Path } from "../../domain/model/Path.ts";
 import { Node } from "../../domain/model/Node.ts";
 import { Snapshot } from "../../domain/model/Snapshot.ts";
 
@@ -60,7 +60,7 @@ Deno.test("`saveVirtualServiceTreeToDirectory`", async (t) => {
       eventBus.dispatch(
         DomainEvent.NodeWasAdded({
           rootNode,
-          path: NodePath.fromString("/some-child"),
+          path: Path.fromString("/some-child"),
           addedNode,
         }),
       );
@@ -87,7 +87,7 @@ Deno.test("`saveVirtualServiceTreeToDirectory`", async (t) => {
       eventBus.dispatch(
         DomainEvent.SnapshotWasAdded({
           rootNode,
-          path: NodePath.fromString("/some-child"),
+          path: Path.fromString("/some-child"),
           httpMethod: HTTPMethod.GET,
           parentNode,
           addedSnaphot: await Snapshot.fromFetchResponse(

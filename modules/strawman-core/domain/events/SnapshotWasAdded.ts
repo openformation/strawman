@@ -18,24 +18,22 @@
 
 /**
  * @author Wilhelm Behncke <wilhelm.behncke@openformation.io>
- *
  */
 
 import { HTTPMethod } from "../model/HTTPMethod.ts";
 import { Snapshot } from "../model/Snapshot.ts";
-import { NodePath } from "../model/NodePath.ts";
+import { Path } from "../model/Path.ts";
 import { Node } from "../model/Node.ts";
 
 export type SnapshotWasAdded = ReturnType<typeof SnapshotWasAdded>;
 
 export const SnapshotWasAdded = (payload: {
   rootNode: Node;
-  path: NodePath;
+  path: Path;
   parentNode: Node;
   httpMethod: HTTPMethod;
   addedSnaphot: Snapshot;
-}) =>
-  ({
-    type: "http://openformation.io/strawman/SnapshotWasAdded",
-    payload,
-  } as const);
+}) => ({
+  type: "http://openformation.io/strawman/SnapshotWasAdded",
+  payload,
+} as const);

@@ -25,7 +25,7 @@ import { createConstraints } from "../../../framework/createConstraints.ts";
 
 import { DomainEvent } from "../events/DomainEvent.ts";
 import { PathSegment } from "../model/PathSegment.ts";
-import { NodePath } from "../model/NodePath.ts";
+import { Path } from "../model/Path.ts";
 import { Node } from "../model/Node.ts";
 import { HTTPMethod } from "../model/HTTPMethod.ts";
 import { Template } from "../model/Template.ts";
@@ -34,7 +34,7 @@ export const ModifyTemplateConstraints = createConstraints("ModifyTemplate");
 
 export type IModifyTemplate = (given: {
   aRootNode: Node;
-  aPath: NodePath;
+  aPath: Path;
   anHTTPMethod: HTTPMethod;
   theModifiedTemplate: Template;
 }) => Node;
@@ -47,7 +47,7 @@ export const makeModifyTemplate = (deps: {
 
     let theParentNode: null | Node = null;
     const modifyTemplateRecursively = (given: {
-      aParentPath: NodePath;
+      aParentPath: Path;
       aParentNode: Node;
       remainingNodePathSegments: PathSegment[];
     }): Node => {
@@ -98,7 +98,7 @@ export const makeModifyTemplate = (deps: {
     };
 
     const nextRootNode = modifyTemplateRecursively({
-      aParentPath: NodePath.root,
+      aParentPath: Path.root,
       aParentNode: given.aRootNode,
       remainingNodePathSegments: [...given.aPath],
     });

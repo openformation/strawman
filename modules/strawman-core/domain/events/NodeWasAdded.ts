@@ -18,20 +18,18 @@
 
 /**
  * @author Wilhelm Behncke <wilhelm.behncke@openformation.io>
- *
  */
 
-import { NodePath } from "../model/NodePath.ts";
+import { Path } from "../model/Path.ts";
 import { Node } from "../model/Node.ts";
 
 export type NodeWasAdded = ReturnType<typeof NodeWasAdded>;
 
 export const NodeWasAdded = (payload: {
   rootNode: Node;
-  path: NodePath;
+  path: Path;
   addedNode: Node;
-}) =>
-  ({
-    type: "http://openformation.io/strawman/NodeWasAdded",
-    payload,
-  } as const);
+}) => ({
+  type: "http://openformation.io/strawman/NodeWasAdded",
+  payload,
+} as const);

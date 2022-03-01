@@ -29,7 +29,7 @@ import { DomainEvent } from "../events/DomainEvent.ts";
 import { HTTPMethod } from "../model/HTTPMethod.ts";
 import { Template } from "../model/Template.ts";
 import { PathSegment } from "../model/PathSegment.ts";
-import { NodePath } from "../model/NodePath.ts";
+import { Path } from "../model/Path.ts";
 import { Node } from "../model/Node.ts";
 
 import { makeModifyTemplate } from "./modifyTemplate.ts";
@@ -75,7 +75,7 @@ Deno.test({
 
     let nextTree = modifyTemplate({
       aRootNode: tree,
-      aPath: NodePath.fromString("/"),
+      aPath: Path.fromString("/"),
       anHTTPMethod: HTTPMethod.PATCH,
       theModifiedTemplate: modifiedTemplate,
     });
@@ -87,7 +87,7 @@ Deno.test({
 
     nextTree = modifyTemplate({
       aRootNode: tree,
-      aPath: NodePath.fromString("/level-1-3"),
+      aPath: Path.fromString("/level-1-3"),
       anHTTPMethod: HTTPMethod.GET,
       theModifiedTemplate: modifiedTemplate,
     });
@@ -101,7 +101,7 @@ Deno.test({
 
     nextTree = modifyTemplate({
       aRootNode: tree,
-      aPath: NodePath.fromString("/level-1-2/level-2-1"),
+      aPath: Path.fromString("/level-1-2/level-2-1"),
       anHTTPMethod: HTTPMethod.POST,
       theModifiedTemplate: modifiedTemplate,
     });
@@ -116,7 +116,7 @@ Deno.test({
 
     nextTree = modifyTemplate({
       aRootNode: tree,
-      aPath: NodePath.fromString("/level-1-2/level-2-3/level-3-1"),
+      aPath: Path.fromString("/level-1-2/level-2-3/level-3-1"),
       anHTTPMethod: HTTPMethod.DELETE,
       theModifiedTemplate: modifiedTemplate,
     });
@@ -142,7 +142,7 @@ Deno.test({
     assertThrows(() =>
       modifyTemplate({
         aRootNode: tree,
-        aPath: NodePath.fromString("/level-1-2/un/known"),
+        aPath: Path.fromString("/level-1-2/un/known"),
         anHTTPMethod: HTTPMethod.DELETE,
         theModifiedTemplate: Template.withCallback(() => ""),
       })
@@ -160,7 +160,7 @@ Deno.test({
     assertThrows(() =>
       modifyTemplate({
         aRootNode: tree,
-        aPath: NodePath.fromString("/"),
+        aPath: Path.fromString("/"),
         anHTTPMethod: HTTPMethod.DELETE,
         theModifiedTemplate: Template.withCallback(() => ""),
       })
@@ -168,7 +168,7 @@ Deno.test({
     assertThrows(() =>
       modifyTemplate({
         aRootNode: tree,
-        aPath: NodePath.fromString("/level-1-2/level-2-3/level-3-1"),
+        aPath: Path.fromString("/level-1-2/level-2-3/level-3-1"),
         anHTTPMethod: HTTPMethod.GET,
         theModifiedTemplate: Template.withCallback(() => ""),
       })
@@ -191,7 +191,7 @@ Deno.test({
 
     const nextTree = modifyTemplate({
       aRootNode: tree,
-      aPath: NodePath.root,
+      aPath: Path.root,
       anHTTPMethod: HTTPMethod.PATCH,
       theModifiedTemplate: modifiedTemplate,
     });
@@ -200,7 +200,7 @@ Deno.test({
       args: [
         DomainEvent.TemplateWasModified({
           rootNode: nextTree,
-          path: NodePath.root,
+          path: Path.root,
           httpMethod: HTTPMethod.PATCH,
           parentNode: nextTree,
           template: modifiedTemplate,
@@ -225,7 +225,7 @@ Deno.test({
 
     const nextTree = modifyTemplate({
       aRootNode: tree,
-      aPath: NodePath.fromString("/level-1-2/level-2-3/level-3-1"),
+      aPath: Path.fromString("/level-1-2/level-2-3/level-3-1"),
       anHTTPMethod: HTTPMethod.DELETE,
       theModifiedTemplate: modifiedTemplate,
     });
@@ -234,7 +234,7 @@ Deno.test({
       args: [
         DomainEvent.TemplateWasModified({
           rootNode: nextTree,
-          path: NodePath.fromString("/level-1-2/level-2-3/level-3-1"),
+          path: Path.fromString("/level-1-2/level-2-3/level-3-1"),
           httpMethod: HTTPMethod.DELETE,
           parentNode: nextTree
             .getChild(PathSegment.fromString("level-1-2"))

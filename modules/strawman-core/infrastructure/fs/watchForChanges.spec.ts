@@ -30,7 +30,7 @@ import { createRef } from "../../../framework/createRef.ts";
 import { DomainEvent } from "../../domain/events/DomainEvent.ts";
 import { HTTPMethod } from "../../domain/model/HTTPMethod.ts";
 import { PathSegment } from "../../domain/model/PathSegment.ts";
-import { NodePath } from "../../domain/model/NodePath.ts";
+import { Path } from "../../domain/model/Path.ts";
 import { Node } from "../../domain/model/Node.ts";
 import { Template } from "../../domain/model/Template.ts";
 import { makeModifyTemplate } from "../../domain/service/modifyTemplate.ts";
@@ -117,7 +117,7 @@ Deno.test("`watchForChanges`", async (t) => {
       args: [
         {
           aRootNode: tree,
-          aPath: NodePath.fromString("/"),
+          aPath: Path.fromString("/"),
           anHTTPMethod: HTTPMethod.GET,
           theModifiedTemplate: template,
         },
@@ -127,7 +127,7 @@ Deno.test("`watchForChanges`", async (t) => {
       args: [
         {
           aRootNode: virtualServiceTreeAfterFirstChange,
-          aPath: NodePath.fromString("/some/deeper/path"),
+          aPath: Path.fromString("/some/deeper/path"),
           anHTTPMethod: HTTPMethod.POST,
           theModifiedTemplate: template,
         },

@@ -29,7 +29,7 @@ import { Arguments } from "../model/Arguments.ts";
 import { HTTPMethod } from "../model/HTTPMethod.ts";
 import { Template } from "../model/Template.ts";
 import { PathSegment } from "../model/PathSegment.ts";
-import { NodePath } from "../model/NodePath.ts";
+import { Path } from "../model/Path.ts";
 import { Node } from "../model/Node.ts";
 import { Wildcard } from "../model/Wildcard.ts";
 
@@ -83,7 +83,7 @@ Deno.test({
     assertEquals(
       route({
         aRootNode: tree,
-        aPath: NodePath.fromString("/"),
+        aPath: Path.fromString("/"),
         anHTTPMethod: HTTPMethod.PATCH,
       }),
       [rootTemplate, Arguments.empty()],
@@ -91,7 +91,7 @@ Deno.test({
     assertEquals(
       route({
         aRootNode: tree,
-        aPath: NodePath.fromString("/level-1-3"),
+        aPath: Path.fromString("/level-1-3"),
         anHTTPMethod: HTTPMethod.GET,
       }),
       [level1Template, Arguments.empty()],
@@ -99,7 +99,7 @@ Deno.test({
     assertEquals(
       route({
         aRootNode: tree,
-        aPath: NodePath.fromString("/level-1-2/level-2-1"),
+        aPath: Path.fromString("/level-1-2/level-2-1"),
         anHTTPMethod: HTTPMethod.POST,
       }),
       [level2Template, Arguments.empty()],
@@ -107,7 +107,7 @@ Deno.test({
     assertEquals(
       route({
         aRootNode: tree,
-        aPath: NodePath.fromString("/level-1-2/level-2-3/level-3-1"),
+        aPath: Path.fromString("/level-1-2/level-2-3/level-3-1"),
         anHTTPMethod: HTTPMethod.DELETE,
       }),
       [level3Template, Arguments.empty()],
@@ -120,7 +120,7 @@ Deno.test({
   fn: () => {
     const [template, args] = route({
       aRootNode: tree,
-      aPath: NodePath.fromString("/level-1-2/argument"),
+      aPath: Path.fromString("/level-1-2/argument"),
       anHTTPMethod: HTTPMethod.PATCH,
     })!;
 
@@ -135,7 +135,7 @@ Deno.test({
     assertEquals(
       route({
         aRootNode: tree,
-        aPath: NodePath.fromString("/level-2-2/un/known"),
+        aPath: Path.fromString("/level-2-2/un/known"),
         anHTTPMethod: HTTPMethod.DELETE,
       }),
       null,
@@ -150,7 +150,7 @@ Deno.test({
     assertEquals(
       route({
         aRootNode: tree,
-        aPath: NodePath.fromString("/"),
+        aPath: Path.fromString("/"),
         anHTTPMethod: HTTPMethod.DELETE,
       }),
       null,
@@ -158,7 +158,7 @@ Deno.test({
     assertEquals(
       route({
         aRootNode: tree,
-        aPath: NodePath.fromString("/level-1-2/level-2-3/level-3-1"),
+        aPath: Path.fromString("/level-1-2/level-2-3/level-3-1"),
         anHTTPMethod: HTTPMethod.GET,
       }),
       null,
