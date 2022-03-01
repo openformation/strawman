@@ -18,24 +18,22 @@
 
 /**
  * @author Wilhelm Behncke <wilhelm.behncke@openformation.io>
- *
  */
 
 import { HTTPMethod } from "../model/HTTPMethod.ts";
 import { Template } from "../model/Template.ts";
-import { NodePath } from "../model/NodePath.ts";
+import { Path } from "../model/Path.ts";
 import { Node } from "../model/Node.ts";
 
 export type TemplateWasModified = ReturnType<typeof TemplateWasModified>;
 
 export const TemplateWasModified = (payload: {
   rootNode: Node;
-  path: NodePath;
+  path: Path;
   parentNode: Node;
   httpMethod: HTTPMethod;
   template: Template;
-}) =>
-  ({
-    type: "http://openformation.io/strawman/TemplateWasModified",
-    payload,
-  } as const);
+}) => ({
+  type: "http://openformation.io/strawman/TemplateWasModified",
+  payload,
+} as const);

@@ -18,11 +18,10 @@
 
 /**
  * @author Wilhelm Behncke <wilhelm.behncke@openformation.io>
- *
  */
 
 import { Node } from "../model/Node.ts";
-import { NodePath } from "../model/NodePath.ts";
+import { Path } from "../model/Path.ts";
 import { HTTPMethod } from "../model/HTTPMethod.ts";
 import { Arguments } from "../model/Arguments.ts";
 import { Template } from "../model/Template.ts";
@@ -31,7 +30,7 @@ export type RoutingResult = readonly [Template, Arguments];
 
 export const route = (given: {
   aRootNode: Node;
-  aPath: NodePath;
+  aPath: Path;
   anHTTPMethod: HTTPMethod;
 }): null | RoutingResult => {
   let node: null | Node = given.aRootNode;

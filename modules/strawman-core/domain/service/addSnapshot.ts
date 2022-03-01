@@ -24,7 +24,7 @@ import type { EventBus } from "../../../framework/createEventBus.ts";
 
 import { DomainEvent } from "../events/DomainEvent.ts";
 import { PathSegment } from "../model/PathSegment.ts";
-import { NodePath } from "../model/NodePath.ts";
+import { Path } from "../model/Path.ts";
 import { Node } from "../model/Node.ts";
 import { HTTPMethod } from "../model/HTTPMethod.ts";
 import { Snapshot } from "../model/Snapshot.ts";
@@ -33,11 +33,11 @@ import { Template } from "../model/Template.ts";
 export const makeAddSnapshot = (deps: { eventBus: EventBus<DomainEvent> }) => {
   const addSnapshot = (given: {
     aRootNode: Node;
-    aPath: NodePath;
+    aPath: Path;
     anHTTPMethod: HTTPMethod;
     aSnapShot: Snapshot;
   }) => {
-    if (given.aPath === NodePath.root) {
+    if (given.aPath === Path.root) {
       const nextRootNode = given.aRootNode.withTemplateForHTTPMethod(
         given.anHTTPMethod,
         Template.fromSnapshot(given.aSnapShot),
@@ -60,9 +60,9 @@ export const makeAddSnapshot = (deps: { eventBus: EventBus<DomainEvent> }) => {
     const theSnapshot = given.aSnapShot;
 
     let theParentNode: null | Node = null;
-    const createdNodes: { path: NodePath; node: Node }[] = [];
+    const createdNodes: { path: Path; node: Node }[] = [];
     const addSnapshotRecursively = (given: {
-      aParentPath: NodePath;
+      aParentPath: Path;
       aParentNode: Node;
       remainingNodePathSegments: PathSegment[];
     }): Node => {
@@ -98,7 +98,7 @@ export const makeAddSnapshot = (deps: { eventBus: EventBus<DomainEvent> }) => {
     };
 
     const nextRootNode = addSnapshotRecursively({
-      aParentPath: NodePath.root,
+      aParentPath: Path.root,
       aParentNode: given.aRootNode,
       remainingNodePathSegments: [...given.aPath],
     });

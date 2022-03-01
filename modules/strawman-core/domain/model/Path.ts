@@ -24,43 +24,43 @@ import { PathSegment } from "./PathSegment.ts";
 
 import { createConstraints } from "../../../framework/createConstraints.ts";
 
-const instances: Record<string, NodePath> = {};
+const instances: Record<string, Path> = {};
 
-export const NodePathConstraints = createConstraints("NodePath");
+export const PathConstraints = createConstraints("Path");
 
-export class NodePath {
+export class Path {
   private constructor(
     private readonly props: {
       segments: PathSegment[];
     },
   ) {}
 
-  public static readonly root = new NodePath({ segments: [] });
+  public static readonly root = new Path({ segments: [] });
 
-  public static readonly fromString = (nodePathAsString: string) => {
-    if (nodePathAsString === "/") {
-      return NodePath.root;
+  public static readonly fromString = (pathAsString: string) => {
+    if (pathAsString === "/") {
+      return Path.root;
     }
 
-    if (instances[nodePathAsString]) {
-      return instances[nodePathAsString];
+    if (instances[pathAsString]) {
+      return instances[pathAsString];
     }
 
-    NodePathConstraints.check({
-      ["`nodePathAsString` must start with a '/'"]: nodePathAsString.startsWith(
+    PathConstraints.check({
+      ["`pathAsString` must start with a '/'"]: pathAsString.startsWith(
         "/",
       ),
-      ["`nodePathAsString` must not end with a '/' (except it is the root path)"]:
-        !nodePathAsString.endsWith("/"),
+      ["`pathAsString` must not end with a '/' (except it is the root path)"]:
+        !pathAsString.endsWith("/"),
     });
 
-    const [, ...segmentsAsStrings] = nodePathAsString.split("/");
+    const [, ...segmentsAsStrings] = pathAsString.split("/");
 
-    instances[nodePathAsString] = new NodePath({
+    instances[pathAsString] = new Path({
       segments: segmentsAsStrings.map(PathSegment.fromString),
     });
 
-    return instances[nodePathAsString];
+    return instances[pathAsString];
   };
 
   public readonly [Symbol.iterator] = () =>
@@ -71,7 +71,7 @@ export class NodePath {
     })(this);
 
   public readonly append = (segment: PathSegment) => {
-    const path = this === NodePath.root
+    const path = this === Path.root
       ? `/${segment.toString()}`
       : `${this.toString()}/${segment.toString()}`;
 
@@ -79,7 +79,7 @@ export class NodePath {
       return instances[path];
     }
 
-    instances[path] = new NodePath({
+    instances[path] = new Path({
       segments: [...this.props.segments, segment],
     });
 

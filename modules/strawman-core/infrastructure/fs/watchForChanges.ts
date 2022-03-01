@@ -24,7 +24,7 @@ import * as path from "../../../../deps/path.ts";
 
 import { Ref } from "../../../framework/createRef.ts";
 
-import { NodePath } from "../../domain/model/NodePath.ts";
+import { Path } from "../../domain/model/Path.ts";
 import { Node } from "../../domain/model/Node.ts";
 import { HTTPMethod } from "../../domain/model/HTTPMethod.ts";
 import { IModifyTemplate } from "../../domain/service/modifyTemplate.ts";
@@ -67,7 +67,7 @@ export const makeWatchForChanges = (deps: {
         if (deps.virtualServiceTreeRef.current !== null) {
           deps.virtualServiceTreeRef.current = deps.modifyTemplate({
             aRootNode: deps.virtualServiceTreeRef.current,
-            aPath: NodePath.fromString(dirname === "." ? "/" : `/${dirname}`),
+            aPath: Path.fromString(dirname === "." ? "/" : `/${dirname}`),
             anHTTPMethod: HTTPMethod.fromString(basename),
             theModifiedTemplate: template,
           });

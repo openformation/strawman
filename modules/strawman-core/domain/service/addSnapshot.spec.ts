@@ -28,7 +28,7 @@ import { createEventBus } from "../../../framework/createEventBus.ts";
 import { DomainEvent } from "../events/DomainEvent.ts";
 import { HTTPMethod } from "../model/HTTPMethod.ts";
 import { PathSegment } from "../model/PathSegment.ts";
-import { NodePath } from "../model/NodePath.ts";
+import { Path } from "../model/Path.ts";
 import { Node } from "../model/Node.ts";
 import { Snapshot } from "../model/Snapshot.ts";
 
@@ -53,7 +53,7 @@ Deno.test({
 
     const nextRootNode = addSnapshot({
       aRootNode: rootNode,
-      aPath: NodePath.root,
+      aPath: Path.root,
       anHTTPMethod: HTTPMethod.GET,
       aSnapShot: snapshot,
     });
@@ -87,7 +87,7 @@ Deno.test({
 
     const nextRootNode = addSnapshot({
       aRootNode: rootNode,
-      aPath: NodePath.fromString("/some/deep/path"),
+      aPath: Path.fromString("/some/deep/path"),
       anHTTPMethod: HTTPMethod.GET,
       aSnapShot: snapshot,
     });
@@ -127,7 +127,7 @@ Deno.test({
 
     const nextRootNode = addSnapshot({
       aRootNode: rootNode,
-      aPath: NodePath.root,
+      aPath: Path.root,
       anHTTPMethod: HTTPMethod.GET,
       aSnapShot: snapshot,
     });
@@ -136,7 +136,7 @@ Deno.test({
       args: [
         DomainEvent.SnapshotWasAdded({
           rootNode: nextRootNode,
-          path: NodePath.root,
+          path: Path.root,
           parentNode: nextRootNode,
           httpMethod: HTTPMethod.GET,
           addedSnaphot: snapshot,
@@ -173,7 +173,7 @@ Deno.test({
 
     const nextRootNode = addSnapshot({
       aRootNode: rootNode,
-      aPath: NodePath.fromString("/some/deep/path"),
+      aPath: Path.fromString("/some/deep/path"),
       anHTTPMethod: HTTPMethod.GET,
       aSnapShot: snapshot,
     });
@@ -182,7 +182,7 @@ Deno.test({
       args: [
         DomainEvent.NodeWasAdded({
           rootNode: nextRootNode,
-          path: NodePath.fromString("/some"),
+          path: Path.fromString("/some"),
           addedNode: nextRootNode.getChild(PathSegment.fromString("some"))!,
         }),
       ],
@@ -191,7 +191,7 @@ Deno.test({
       args: [
         DomainEvent.NodeWasAdded({
           rootNode: nextRootNode,
-          path: NodePath.fromString("/some/deep"),
+          path: Path.fromString("/some/deep"),
           addedNode: nextRootNode
             .getChild(PathSegment.fromString("some"))
             ?.getChild(PathSegment.fromString("deep"))!,
@@ -202,7 +202,7 @@ Deno.test({
       args: [
         DomainEvent.NodeWasAdded({
           rootNode: nextRootNode,
-          path: NodePath.fromString("/some/deep/path"),
+          path: Path.fromString("/some/deep/path"),
           addedNode: nextRootNode
             .getChild(PathSegment.fromString("some"))
             ?.getChild(PathSegment.fromString("deep"))
