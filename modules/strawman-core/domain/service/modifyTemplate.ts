@@ -18,14 +18,13 @@
 
 /**
  * @author Wilhelm Behncke <wilhelm.behncke@openformation.io>
- *
  */
 
 import type { EventBus } from "../../../framework/createEventBus.ts";
 import { createConstraints } from "../../../framework/createConstraints.ts";
 
 import { DomainEvent } from "../events/DomainEvent.ts";
-import { NodeName } from "../model/NodeName.ts";
+import { PathSegment } from "../model/PathSegment.ts";
 import { NodePath } from "../model/NodePath.ts";
 import { Node } from "../model/Node.ts";
 import { HTTPMethod } from "../model/HTTPMethod.ts";
@@ -50,7 +49,7 @@ export const makeModifyTemplate = (deps: {
     const modifyTemplateRecursively = (given: {
       aParentPath: NodePath;
       aParentNode: Node;
-      remainingNodePathSegments: NodeName[];
+      remainingNodePathSegments: PathSegment[];
     }): Node => {
       const [head, ...tail] = given.remainingNodePathSegments;
 
@@ -68,7 +67,7 @@ export const makeModifyTemplate = (deps: {
               aParentPath: path,
               aParentNode: node!,
               remainingNodePathSegments: tail,
-            })
+            }),
           );
         } else {
           ModifyTemplateConstraints.check({
@@ -78,7 +77,7 @@ export const makeModifyTemplate = (deps: {
 
           theParentNode = node!.withTemplateForHTTPMethod(
             theHTTPMethod,
-            theModifiedTemplate
+            theModifiedTemplate,
           );
 
           return given.aParentNode.withAddedChild(head, theParentNode!);
@@ -92,7 +91,7 @@ export const makeModifyTemplate = (deps: {
 
       theParentNode = given.aParentNode.withTemplateForHTTPMethod(
         theHTTPMethod,
-        theModifiedTemplate
+        theModifiedTemplate,
       );
 
       return theParentNode;
@@ -111,7 +110,7 @@ export const makeModifyTemplate = (deps: {
         parentNode: theParentNode!,
         httpMethod: given.anHTTPMethod,
         template: given.theModifiedTemplate,
-      })
+      }),
     );
 
     return nextRootNode;

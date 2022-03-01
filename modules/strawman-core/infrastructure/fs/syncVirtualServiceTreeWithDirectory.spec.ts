@@ -27,7 +27,7 @@ import { createEventBus } from "../../../framework/createEventBus.ts";
 
 import { DomainEvent } from "../../domain/events/DomainEvent.ts";
 import { HTTPMethod } from "../../domain/model/HTTPMethod.ts";
-import { NodeName } from "../../domain/model/NodeName.ts";
+import { PathSegment } from "../../domain/model/PathSegment.ts";
 import { NodePath } from "../../domain/model/NodePath.ts";
 import { Node } from "../../domain/model/Node.ts";
 import { Snapshot } from "../../domain/model/Snapshot.ts";
@@ -52,7 +52,7 @@ Deno.test("`saveVirtualServiceTreeToDirectory`", async (t) => {
       const eventBus = createEventBus<DomainEvent>();
       const addedNode = Node.blank();
       const rootNode = Node.blank().withAddedChild(
-        NodeName.fromString("some-child"),
+        PathSegment.fromString("some-child"),
         addedNode,
       );
 
@@ -79,7 +79,7 @@ Deno.test("`saveVirtualServiceTreeToDirectory`", async (t) => {
       const eventBus = createEventBus<DomainEvent>();
       const parentNode = Node.blank();
       const rootNode = Node.blank().withAddedChild(
-        NodeName.fromString("some-child"),
+        PathSegment.fromString("some-child"),
         parentNode,
       );
 

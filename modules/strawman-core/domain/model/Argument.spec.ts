@@ -18,25 +18,24 @@
 
 /**
  * @author Wilhelm Behncke <wilhelm.behncke@openformation.io>
- *
  */
 
 import { assert, assertEquals } from "../../../../deps-dev/asserts.ts";
 
 import { Argument } from "./Argument.ts";
-import { NodeName } from "./NodeName.ts";
+import { PathSegment } from "./PathSegment.ts";
 
 Deno.test("`Argument`", async (t) => {
   await t.step("can be created from NodeName and string value", () => {
     assert(
-      Argument.create(NodeName.fromString("foo"), "bar") instanceof Argument
+      Argument.create(PathSegment.fromString("foo"), "bar") instanceof Argument,
     );
   });
 
   await t.step("can be converted into an object entry", () => {
     assertEquals(
-      Argument.create(NodeName.fromString("foo"), "bar").toEntry(),
-      ["foo", "bar"]
+      Argument.create(PathSegment.fromString("foo"), "bar").toEntry(),
+      ["foo", "bar"],
     );
   });
 });

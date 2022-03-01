@@ -18,7 +18,6 @@
 
 /**
  * @author Wilhelm Behncke <wilhelm.behncke@openformation.io>
- *
  */
 
 import {
@@ -28,7 +27,7 @@ import {
 } from "../../../../deps-dev/asserts.ts";
 
 import { Argument } from "./Argument.ts";
-import { NodeName } from "./NodeName.ts";
+import { PathSegment } from "./PathSegment.ts";
 import { Node } from "./Node.ts";
 import { Wildcard } from "./Wildcard.ts";
 
@@ -46,7 +45,7 @@ Deno.test("`Wildcard`", async (t) => {
 
   await t.step("can make arguments", () => {
     const wildcard = Wildcard.create("foo", Node.blank());
-    const argument = wildcard.makeArgument(NodeName.fromString("bar"));
+    const argument = wildcard.makeArgument(PathSegment.fromString("bar"));
 
     assert(argument instanceof Argument);
     assertEquals(argument.toEntry(), ["foo", "bar"]);

@@ -18,22 +18,21 @@
 
 /**
  * @author Wilhelm Behncke <wilhelm.behncke@openformation.io>
- *
  */
 
 import { createConstraints } from "../../../framework/createConstraints.ts";
 
-const instances: Record<string, NodeName> = {};
+const instances: Record<string, PathSegment> = {};
 
-export const NodeNameConstraints = createConstraints("NodeName");
+export const PathSegmentConstraints = createConstraints("PathSegment");
 
-export class NodeName {
+export class PathSegment {
   private constructor(
     public readonly props: {
       readonly value: string;
-    }
+    },
   ) {
-    NodeNameConstraints.check({
+    PathSegmentConstraints.check({
       "must not be empty": this.props.value !== "",
 
       "must only contain characters safe to be used as a URI path segment (as per https://datatracker.ietf.org/doc/html/rfc3986#appendix-A)":
@@ -41,16 +40,16 @@ export class NodeName {
     });
   }
 
-  public static readonly fromString = (nodeNameAsString: string) => {
-    const nodeName = instances[nodeNameAsString];
-    if (nodeName) {
-      return nodeName;
+  public static readonly fromString = (pathSegmentAsString: string) => {
+    const pathSegment = instances[pathSegmentAsString];
+    if (pathSegment) {
+      return pathSegment;
     }
 
-    const newNodeName = new NodeName({ value: nodeNameAsString });
-    instances[nodeNameAsString] = newNodeName;
+    const newPathSegment = new PathSegment({ value: pathSegmentAsString });
+    instances[pathSegmentAsString] = newPathSegment;
 
-    return newNodeName;
+    return newPathSegment;
   };
 
   public readonly toString = () => this.props.value;

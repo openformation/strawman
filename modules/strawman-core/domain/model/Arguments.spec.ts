@@ -18,12 +18,11 @@
 
 /**
  * @author Wilhelm Behncke <wilhelm.behncke@openformation.io>
- *
  */
 
 import { assert, assertEquals } from "../../../../deps-dev/asserts.ts";
 
-import { NodeName } from "./NodeName.ts";
+import { PathSegment } from "./PathSegment.ts";
 import { Argument } from "./Argument.ts";
 import { Arguments } from "./Arguments.ts";
 
@@ -39,9 +38,11 @@ Deno.test("`Arguments`", async (t) => {
   await t.step("accept additional arguments", () => {
     assertEquals(
       Arguments.empty()
-        .withAddedArgument(Argument.create(NodeName.fromString("foo"), "bar"))
+        .withAddedArgument(
+          Argument.create(PathSegment.fromString("foo"), "bar"),
+        )
         .toRecord(),
-      { foo: "bar" }
+      { foo: "bar" },
     );
   });
 });

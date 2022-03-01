@@ -18,10 +18,9 @@
 
 /**
  * @author Wilhelm Behncke <wilhelm.behncke@openformation.io>
- *
  */
 
-import { NodeName } from "./NodeName.ts";
+import { PathSegment } from "./PathSegment.ts";
 import { HTTPMethod } from "./HTTPMethod.ts";
 import { Template } from "./Template.ts";
 import { Wildcard } from "./Wildcard.ts";
@@ -32,7 +31,7 @@ export class Node {
       readonly templates: Record<string, Template>;
       readonly children: Record<string, Node>;
       readonly wildcard: null | Wildcard;
-    }
+    },
   ) {}
 
   public static readonly blank = () =>
@@ -47,17 +46,17 @@ export class Node {
 
   public readonly withTemplateForHTTPMethod = (
     httpMethod: HTTPMethod,
-    template: Template
+    template: Template,
   ) =>
     new Node({
       ...this.props,
       templates: { ...this.props.templates, [httpMethod.toString()]: template },
     });
 
-  public readonly getChild = (nodeName: NodeName): null | Node =>
+  public readonly getChild = (nodeName: PathSegment): null | Node =>
     this.props.children[nodeName.toString()] ?? null;
 
-  public readonly withAddedChild = (nodeName: NodeName, addedChild: Node) =>
+  public readonly withAddedChild = (nodeName: PathSegment, addedChild: Node) =>
     new Node({
       ...this.props,
       children: {
