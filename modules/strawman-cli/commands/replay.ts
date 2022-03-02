@@ -57,6 +57,9 @@ type CommandParameters = {
   thePathToSnapshotDirectory: string;
 };
 
+const strawmanModeHeader = "X-Strawman-Mode";
+const strawmanModeType = "Replay";
+
 export const run = async () => {
   const parameters = parseParametersFromCliArguments(Deno.args);
   const virtualServiceTree = await initializeVirtualServiceTree(parameters);
@@ -144,6 +147,8 @@ const serveHttp = async (
       const response = await given.aReplayRequesthandler({
         aRequest: requestEvent.request,
       });
+
+      response.headers.set(strawmanModeHeader, strawmanModeType);
 
       requestEvent.respondWith(response).then(() => {
         console.info(
