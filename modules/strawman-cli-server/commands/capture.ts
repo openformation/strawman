@@ -32,7 +32,7 @@ import {
 import { Node } from "../../strawman-core/domain/model/Node.ts";
 import { makeImportTemplate } from "../../strawman-core/infrastructure/fs/importTemplate.ts";
 import { makeCreateVirtualServiceTreeFromDirectory } from "../../strawman-core/infrastructure/fs/createVirtualServiceTreeFromDirectory.ts";
-import { makeSaveVirtualServiceTreeToDirectory } from "../../strawman-core/infrastructure/fs/saveVirtualServiceTreeToDirectory.ts";
+import { makeSyncVirtualServiceTreeWithDirectory } from "../../strawman-core/infrastructure/fs/syncVirtualServiceTreeWithDirectory.ts";
 
 export const shortDescription =
   "Strawman acts as a proxy and captures responses from a remote web service";
@@ -82,10 +82,10 @@ const parseParametersFromCliArguments = (args: string[]): CommandParameters => {
   return {
     theRemoteRootUri: new URL(positional[1] as string),
     theLocalRootUri: new URL(
-      options.l ?? options["local-root-uri"] ?? "http://localhost:8080"
+      options.l ?? options["local-root-uri"] ?? "http://localhost:8080",
     ),
-    thePathToSnapshotDirectory:
-      options.s ?? options["snapshot-dir"] ?? "./snapshots",
+    thePathToSnapshotDirectory: options.s ?? options["snapshot-dir"] ??
+      "./snapshots",
   };
 };
 
@@ -128,14 +128,14 @@ const initializeVirtualServiceTree = async (given: CommandParameters) => {
 const startCaptureServer = async (
   given: CommandParameters & { aVirtualServiceTree: Node },
 ) => {
-  const saveVirtualServiceTreeToDirectory =
-    makeSaveVirtualServiceTreeToDirectory({
+  const syncVirtualServiceTreeWithDirectory =
+    makeSyncVirtualServiceTreeWithDirectory({
       pathToDirectory: given.thePathToSnapshotDirectory,
     });
   const captureRequest = makeCaptureRequest({
     urlOfProxiedService: given.theRemoteRootUri,
     virtualServiceTree: given.aVirtualServiceTree,
-    subscribers: [saveVirtualServiceTreeToDirectory],
+    subscribers: [syncVirtualServiceTreeWithDirectory],
   });
 
   const server = Deno.listen({
