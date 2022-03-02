@@ -70,6 +70,9 @@ export const run = async () => {
   });
 };
 
+const strawmanModeHeader = "X-Strawman-Mode";
+const strawmanModeType = "Capture";
+
 const parseParametersFromCliArguments = (args: string[]): CommandParameters => {
   const { _: positional, ...options } = parse(args);
   if (!positional[1]) {
@@ -172,6 +175,8 @@ const serveHttp = async (
       const response = await given.aCaptureRequestHandler({
         aRequest: requestEvent.request,
       });
+
+      response.headers.set(strawmanModeHeader, strawmanModeType);
 
       requestEvent.respondWith(response).then(() => {
         console.info(
