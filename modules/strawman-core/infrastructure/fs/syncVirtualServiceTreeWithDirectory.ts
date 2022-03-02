@@ -18,7 +18,6 @@
 
 /**
  * @author Wilhelm Behncke <wilhelm.behncke@openformation.io>
- *
  */
 
 import * as path from "../../../../deps/path.ts";
@@ -28,7 +27,7 @@ import { createJobQueue } from "../../../framework/createJobQueue.ts";
 
 import { DomainEvent } from "../../domain/events/DomainEvent.ts";
 
-export const makeSaveVirtualServiceTreeToDirectory = (deps: {
+export const makeSyncVirtualServiceTreeWithDirectory = (deps: {
   pathToDirectory: string;
 }) => {
   const jobQueue = createJobQueue();
@@ -37,7 +36,7 @@ export const makeSaveVirtualServiceTreeToDirectory = (deps: {
     .on("http://openformation.io/strawman/NodeWasAdded", (ev) => {
       const pathToNodeDirectory = path.join(
         deps.pathToDirectory,
-        ev.payload.path.toString()
+        ev.payload.path.toString(),
       );
 
       jobQueue.addJob(() =>
@@ -48,7 +47,7 @@ export const makeSaveVirtualServiceTreeToDirectory = (deps: {
       const pathToTemplateFile = path.join(
         deps.pathToDirectory,
         ev.payload.path.toString(),
-        `${ev.payload.httpMethod.toString()}.mock.ts`
+        `${ev.payload.httpMethod.toString()}.mock.ts`,
       );
 
       jobQueue.addJob(() =>
@@ -62,7 +61,7 @@ export const makeSaveVirtualServiceTreeToDirectory = (deps: {
             "const response = (_req: Request) => `",
             ev.payload.addedSnaphot.toString(),
             "`;",
-          ].join("\n")
+          ].join("\n"),
         )
       );
     });

@@ -18,7 +18,6 @@
 
 /**
  * @author Wilhelm Behncke <wilhelm.behncke@openformation.io>
- *
  */
 
 import { assert, assertEquals } from "../../../../deps-dev/asserts.ts";
@@ -33,17 +32,17 @@ import { NodePath } from "../../domain/model/NodePath.ts";
 import { Node } from "../../domain/model/Node.ts";
 import { Snapshot } from "../../domain/model/Snapshot.ts";
 
-import { makeSaveVirtualServiceTreeToDirectory } from "./saveVirtualServiceTreeToDirectory.ts";
+import { makeSyncVirtualServiceTreeWithDirectory } from "./syncVirtualServiceTreeWithDirectory.ts";
 
 Deno.test("`saveVirtualServiceTreeToDirectory`", async (t) => {
   const pathToDirectory = path.join(
     path.dirname(path.fromFileUrl(import.meta.url)),
-    "__tmp__"
+    "__tmp__",
   );
   await Deno.mkdir(pathToDirectory, { recursive: true });
 
   const saveVirtualServiceTreeToDirectory =
-    makeSaveVirtualServiceTreeToDirectory({
+    makeSyncVirtualServiceTreeWithDirectory({
       pathToDirectory,
     });
 
@@ -54,7 +53,7 @@ Deno.test("`saveVirtualServiceTreeToDirectory`", async (t) => {
       const addedNode = Node.blank();
       const rootNode = Node.blank().withAddedChild(
         NodeName.fromString("some-child"),
-        addedNode
+        addedNode,
       );
 
       eventBus.subscribe(saveVirtualServiceTreeToDirectory);
@@ -63,15 +62,15 @@ Deno.test("`saveVirtualServiceTreeToDirectory`", async (t) => {
           rootNode,
           path: NodePath.fromString("/some-child"),
           addedNode,
-        })
+        }),
       );
 
       await new Promise((resolve) => setTimeout(resolve, 500));
 
       assert(
-        (await Deno.stat(path.join(pathToDirectory, "some-child"))).isDirectory
+        (await Deno.stat(path.join(pathToDirectory, "some-child"))).isDirectory,
       );
-    }
+    },
   );
 
   await t.step(
@@ -81,7 +80,7 @@ Deno.test("`saveVirtualServiceTreeToDirectory`", async (t) => {
       const parentNode = Node.blank();
       const rootNode = Node.blank().withAddedChild(
         NodeName.fromString("some-child"),
-        parentNode
+        parentNode,
       );
 
       eventBus.subscribe(saveVirtualServiceTreeToDirectory);
@@ -98,16 +97,16 @@ Deno.test("`saveVirtualServiceTreeToDirectory`", async (t) => {
               headers: {
                 "content-type": "application/json",
               },
-            })
+            }),
           ),
-        })
+        }),
       );
 
       await new Promise((resolve) => setTimeout(resolve, 500));
 
       assertEquals(
         await Deno.readTextFile(
-          path.join(pathToDirectory, "some-child/GET.mock.ts")
+          path.join(pathToDirectory, "some-child/GET.mock.ts"),
         ),
         `
 export default (req: Request) => {
@@ -121,9 +120,9 @@ content-type: application/json
 
 {"foo":"bar"}
 \`;
-`.trim()
+`.trim(),
       );
-    }
+    },
   );
 
   await Deno.remove(pathToDirectory, { recursive: true });
