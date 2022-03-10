@@ -25,9 +25,11 @@ import { parse } from "../../deps/flags.ts";
 import { VERSION } from "../../version.ts";
 
 import * as start from "./commands/start.ts";
+import * as rc from "./commands/rc.ts";
 
 const commands = {
   start,
+  rc,
 } as const;
 
 const header = `
