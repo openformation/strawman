@@ -61,9 +61,10 @@ Options:
                         accordingly
 
 Examples:
-  strawman capture https://example.com
-  strawman capture -l http://localhost:3000 https://example.com
-  strawman capture -s ./path/to/snapshots https://example.com
+  strawman start https://example.com
+  strawman start -m capture https://example.com
+  strawman start -l http://localhost:3000 https://example.com
+  strawman start -s ./path/to/snapshots https://example.com
 `;
 
 type CommandParameters = {
