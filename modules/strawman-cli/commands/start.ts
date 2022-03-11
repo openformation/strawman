@@ -127,7 +127,9 @@ export const run = async () => {
 };
 
 const parseParametersFromCliArguments = (args: string[]): CommandParameters => {
-  const { _: positional, ...options } = parse(args);
+  const { _: positional, ...options } = parse(args, {
+    boolean: ["e", "enable-editing"],
+  });
   if (!positional[1]) {
     console.error("ERROR: <remote-root-uri> must be provided.");
     console.log("");
