@@ -22,14 +22,14 @@
 
 import { HTTPMethod } from "../model/HTTPMethod.ts";
 import { Template } from "../model/Template.ts";
-import { NodePath } from "../model/NodePath.ts";
+import { Path } from "../model/Path.ts";
 import { Node } from "../model/Node.ts";
 
 export type TemplateWasDeleted = ReturnType<typeof TemplateWasDeleted>;
 
 export const TemplateWasDeleted = (payload: {
   rootNode: Node;
-  path: NodePath;
+  path: Path;
   httpMethod: HTTPMethod;
   template: Template;
 }) => ({

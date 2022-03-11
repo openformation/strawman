@@ -24,7 +24,7 @@ import type { EventBus } from "../../../framework/createEventBus.ts";
 import { createConstraints } from "../../../framework/createConstraints.ts";
 
 import { DomainEvent } from "../events/DomainEvent.ts";
-import { NodePath } from "../model/NodePath.ts";
+import { Path } from "../model/Path.ts";
 import { Node } from "../model/Node.ts";
 import { HTTPMethod } from "../model/HTTPMethod.ts";
 import { Template } from "../model/Template.ts";
@@ -34,7 +34,7 @@ export const DeleteTemplateConstraints = createConstraints("DeleteTemplate");
 export type IDeleteTemplate = (given: {
   aRootNode: Node;
   anHTTPMethod: HTTPMethod;
-  aPath: NodePath;
+  aPath: Path;
 }) => Node;
 
 export const makeDeleteTemplate = (

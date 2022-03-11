@@ -26,8 +26,8 @@ import { assertSpyCall, spy } from "../../../../deps-dev/mock.ts";
 import { createEventBus } from "../../../framework/createEventBus.ts";
 
 import { DomainEvent } from "../events/DomainEvent.ts";
-import { NodeName } from "../model/NodeName.ts";
-import { NodePath } from "../model/NodePath.ts";
+import { PathSegment } from "../model/PathSegment.ts";
+import { Path } from "../model/Path.ts";
 import { Node } from "../model/Node.ts";
 import { HTTPMethod } from "../model/HTTPMethod.ts";
 import { Template } from "../model/Template.ts";
@@ -51,7 +51,7 @@ Deno.test({
       deleteTemplate({
         aRootNode: tree,
         anHTTPMethod: HTTPMethod.GET,
-        aPath: NodePath.fromString("/"),
+        aPath: Path.fromString("/"),
       }).getTemplateForHTTPMethod(HTTPMethod.GET),
       null,
     );
@@ -65,9 +65,9 @@ Deno.test({
     const deleteTemplate = makeDeleteTemplate({ eventBus });
     const tree = Node.blank()
       .withAddedChild(
-        NodeName.fromString("level-1"),
+        PathSegment.fromString("level-1"),
         Node.blank().withAddedChild(
-          NodeName.fromString("level-2"),
+          PathSegment.fromString("level-2"),
           Node.blank()
             .withTemplateForHTTPMethod(
               HTTPMethod.PATCH,
@@ -80,9 +80,9 @@ Deno.test({
       deleteTemplate({
         aRootNode: tree,
         anHTTPMethod: HTTPMethod.PATCH,
-        aPath: NodePath.fromString("/level-1/level-2"),
-      }).getChild(NodeName.fromString("level-1"))?.getChild(
-        NodeName.fromString("level-2"),
+        aPath: Path.fromString("/level-1/level-2"),
+      }).getChild(PathSegment.fromString("level-1"))?.getChild(
+        PathSegment.fromString("level-2"),
       )?.getTemplateForHTTPMethod(HTTPMethod.PATCH),
       null,
     );
@@ -106,7 +106,7 @@ Deno.test({
 
     const nextTree = deleteTemplate({
       aRootNode: tree,
-      aPath: NodePath.root,
+      aPath: Path.root,
       anHTTPMethod: HTTPMethod.PATCH,
     });
 
@@ -114,7 +114,7 @@ Deno.test({
       args: [
         DomainEvent.TemplateWasDeleted({
           rootNode: nextTree,
-          path: NodePath.root,
+          path: Path.root,
           httpMethod: HTTPMethod.PATCH,
           template: templateStub,
         }),
@@ -131,9 +131,9 @@ Deno.test({
     const deleteTemplate = makeDeleteTemplate({ eventBus });
     const tree = Node.blank()
       .withAddedChild(
-        NodeName.fromString("level-1"),
+        PathSegment.fromString("level-1"),
         Node.blank().withAddedChild(
-          NodeName.fromString("level-2"),
+          PathSegment.fromString("level-2"),
           Node.blank()
             .withTemplateForHTTPMethod(
               HTTPMethod.POST,
@@ -147,7 +147,7 @@ Deno.test({
 
     const nextTree = deleteTemplate({
       aRootNode: tree,
-      aPath: NodePath.fromString("/level-1/level-2"),
+      aPath: Path.fromString("/level-1/level-2"),
       anHTTPMethod: HTTPMethod.POST,
     });
 
@@ -155,7 +155,7 @@ Deno.test({
       args: [
         DomainEvent.TemplateWasDeleted({
           rootNode: nextTree,
-          path: NodePath.fromString("/level-1/level-2"),
+          path: Path.fromString("/level-1/level-2"),
           httpMethod: HTTPMethod.POST,
           template: templateStub,
         }),
