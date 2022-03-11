@@ -28,7 +28,7 @@ import { ILogger } from "../../strawman-logger/mod.ts";
 
 import { DomainEvent } from "../domain/events/DomainEvent.ts";
 import { Node } from "../domain/model/Node.ts";
-import { NodePath } from "../domain/model/NodePath.ts";
+import { Path } from "../domain/model/Path.ts";
 import { HTTPMethod } from "../domain/model/HTTPMethod.ts";
 import { makeDeleteTemplate } from "../domain/service/deleteTemplate.ts";
 
@@ -82,7 +82,7 @@ export const makeStrawman = (deps: {
         deleteTemplate({
           aRootNode: virtualServiceTreeRef.current,
           anHTTPMethod: HTTPMethod.fromString(method),
-          aPath: NodePath.fromString(path),
+          aPath: Path.fromString(path),
         });
         return true;
       }
