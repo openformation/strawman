@@ -35,6 +35,8 @@ import { makeDeleteTemplate } from "../domain/service/deleteTemplate.ts";
 import { makeReplayRequest } from "./service/replayRequest.ts";
 import { makeCaptureRequest } from "./service/captureRequest.ts";
 
+import type { Manifest } from "./manifest.ts";
+
 export type Strawman = ReturnType<typeof makeStrawman>;
 
 export const makeStrawman = (deps: {
@@ -42,6 +44,7 @@ export const makeStrawman = (deps: {
   virtualServiceTree: null | Node;
   subscribers: Subscriber<DomainEvent>[];
   logger: ILogger;
+  manifest: Manifest;
 }) => {
   const virtualServiceTreeRef = createRef(deps.virtualServiceTree);
   const eventBus = createEventBus<DomainEvent>();
@@ -75,8 +78,16 @@ export const makeStrawman = (deps: {
 
       return false;
     },
-    handleRequest: (request: Request) =>
-      requestHandler.current!({ aRequest: request }),
+    handleRequest: (request: Request) => {
+      const generateResponse = (deps.manifest.middlewares ?? []).reduce<
+        () => Promise<Response>
+      >(
+        (acc, cur) => () => cur(request, acc),
+        () => requestHandler.current!({ aRequest: request }),
+      );
+
+      return generateResponse();
+    },
     deleteTemplate: (method: string, path: string) => {
       if (virtualServiceTreeRef.current !== null) {
         deleteTemplate({
