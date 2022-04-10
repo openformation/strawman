@@ -26,6 +26,7 @@ import { createLogger, createLogPrinter } from "../../strawman-logger/mod.ts";
 
 import { makeModifyTemplate } from "../../strawman-core/domain/service/modifyTemplate.ts";
 
+import { makeImportManifest } from "../../strawman-core/infrastructure/fs/importManifest.ts";
 import { makeImportTemplate } from "../../strawman-core/infrastructure/fs/importTemplate.ts";
 import { makeSyncVirtualServiceTreeWithDirectory } from "../../strawman-core/infrastructure/fs/syncVirtualServiceTreeWithDirectory.ts";
 
@@ -93,11 +94,17 @@ export const run = async () => {
     makeSyncVirtualServiceTreeWithDirectory({
       pathToDirectory: parameters.thePathToSnapshotDirectory,
     });
+  const importManifest = makeImportManifest({
+    import: (pathToTemplateFile) => import(pathToTemplateFile),
+  });
   const strawman = makeStrawman({
     urlOfProxiedService: parameters.theRemoteRootUri,
     virtualServiceTree,
     subscribers: [syncVirtualServiceTreeToDirectory],
     logger,
+    manifest: await importManifest(
+      parameters.thePathToSnapshotDirectory,
+    ),
   });
 
   strawman.setMode(parameters.theMode);
