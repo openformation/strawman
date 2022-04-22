@@ -26,6 +26,7 @@ import { createSubscription } from "../../../framework/createSubscription.ts";
 import { createJobQueue } from "../../../framework/createJobQueue.ts";
 
 import { DomainEvent } from "../../domain/events/DomainEvent.ts";
+import { sanitizeSnapshotContent } from "../../domain/service/sanitizeSnapshot.ts";
 
 export const makeSyncVirtualServiceTreeWithDirectory = (deps: {
   pathToDirectory: string;
@@ -59,7 +60,7 @@ export const makeSyncVirtualServiceTreeWithDirectory = (deps: {
             "};",
             "",
             "const response = (_req: Request) => `",
-            ev.payload.addedSnaphot.toString(),
+            sanitizeSnapshotContent(ev.payload.addedSnaphot.toString()),
             "`;",
           ].join("\n"),
         )
