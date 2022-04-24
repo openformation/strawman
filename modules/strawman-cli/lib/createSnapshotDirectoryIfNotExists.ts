@@ -24,6 +24,8 @@ import { castError } from "../../framework/castError.ts";
 
 import { ILogger } from "../../strawman-logger/mod.ts";
 
+import { fileExists } from "./fileExists.ts";
+
 export const makeCreateSnapshotDirectoryIfNotExists = (
   deps: { logger: ILogger },
 ) => {
@@ -31,8 +33,14 @@ export const makeCreateSnapshotDirectoryIfNotExists = (
     pathToSnapshotDirectory: string,
   ) => {
     try {
-      await Deno.mkdir(pathToSnapshotDirectory, { recursive: true });
-      deps.logger.info(`Directory "${pathToSnapshotDirectory}" was created`);
+      if (await fileExists(pathToSnapshotDirectory)) {
+        deps.logger.debug(
+          `Directory "${pathToSnapshotDirectory}" exists and won't be created`,
+        );
+      } else {
+        await Deno.mkdir(pathToSnapshotDirectory, { recursive: true });
+        deps.logger.info(`Directory "${pathToSnapshotDirectory}" was created`);
+      }
     } catch (err) {
       deps.logger.fatal(
         new Error(
