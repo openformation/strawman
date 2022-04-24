@@ -28,6 +28,8 @@ import { castError } from "../../framework/castError.ts";
 
 import { ILogger } from "../../strawman-logger/mod.ts";
 
+import { fileExists } from "./fileExists.ts";
+
 const manifestTemplate =
   `import type { Manifest } from "https://deno.land/x/strawman@${VERSION}/mod.ts";
 
@@ -45,8 +47,14 @@ export const makeCreateManifestFile = (
     );
 
     try {
-      await Deno.writeTextFile(pathToManifestFile, manifestTemplate);
-      deps.logger.info(`Manifest file "${pathToManifestFile}" was written`);
+      if (await fileExists(pathToManifestFile)) {
+        deps.logger.error(
+          `Manifest file "${pathToManifestFile}" already exists`,
+        );
+      } else {
+        await Deno.writeTextFile(pathToManifestFile, manifestTemplate);
+        deps.logger.info(`Manifest file "${pathToManifestFile}" was written`);
+      }
     } catch (err) {
       deps.logger.fatal(
         new Error(
