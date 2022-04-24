@@ -20,23 +20,37 @@
  * @author Wilhelm Behncke <wilhelm.behncke@openformation.io>
  */
 
+import * as path from "../../../deps/path.ts";
+
+import { VERSION } from "../../../version.ts";
+
 import { castError } from "../../framework/castError.ts";
 
 import { ILogger } from "../../strawman-logger/mod.ts";
 
-export const makeCreateSnapshotDirectoryIfNotExists = (
+const manifestTemplate =
+  `import type { Manifest } from "https://deno.land/x/strawman@${VERSION}/mod.ts";
+
+export const manifest: Manifest = {
+};
+`;
+
+export const makeCreateManifestFile = (
   deps: { logger: ILogger },
 ) => {
-  const createSnapshotDirectoryIfNotExists = async (
-    pathToSnapshotDirectory: string,
-  ) => {
+  const createManifestFile = async (pathToSnapshotDirectory: string) => {
+    const pathToManifestFile = path.join(
+      pathToSnapshotDirectory,
+      "manifest.ts",
+    );
+
     try {
-      await Deno.mkdir(pathToSnapshotDirectory, { recursive: true });
-      deps.logger.info(`Directory "${pathToSnapshotDirectory}" was created`);
+      await Deno.writeTextFile(pathToManifestFile, manifestTemplate);
+      deps.logger.info(`Manifest file "${pathToManifestFile}" was written`);
     } catch (err) {
       deps.logger.fatal(
         new Error(
-          `Directory "${pathToSnapshotDirectory}" could not be created`,
+          `Manifest file "${pathToManifestFile}" could not be written`,
           { cause: castError(err) },
         ),
       );
@@ -44,5 +58,5 @@ export const makeCreateSnapshotDirectoryIfNotExists = (
     }
   };
 
-  return createSnapshotDirectoryIfNotExists;
+  return createManifestFile;
 };

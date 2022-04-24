@@ -24,10 +24,12 @@ import { parse } from "../../deps/flags.ts";
 
 import { VERSION } from "../../version.ts";
 
+import * as init from "./commands/init.ts";
 import * as start from "./commands/start.ts";
 import * as rc from "./commands/rc.ts";
 
 const commands = {
+  init,
   start,
   rc,
 } as const;
