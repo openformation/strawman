@@ -26,7 +26,7 @@ import { createSubscription } from "../../../framework/createSubscription.ts";
 import { createJobQueue } from "../../../framework/createJobQueue.ts";
 
 import { DomainEvent } from "../../domain/events/DomainEvent.ts";
-import { sanitizeSnapshotContent } from "../../domain/service/sanitizeSnapshot.ts";
+import { addSlashesToStringForUseInTemplateLiteral } from "../fs/addSlashesToStringForUseInTemplateLiteral.ts";
 
 export const makeSyncVirtualServiceTreeWithDirectory = (deps: {
   pathToDirectory: string;
@@ -60,7 +60,9 @@ export const makeSyncVirtualServiceTreeWithDirectory = (deps: {
             "};",
             "",
             "const response = (_req: Request) => `",
-            sanitizeSnapshotContent(ev.payload.addedSnaphot.toString()),
+            addSlashesToStringForUseInTemplateLiteral(
+              ev.payload.addedSnaphot.toString(),
+            ),
             "`;",
           ].join("\n"),
         )
