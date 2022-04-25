@@ -30,53 +30,31 @@ Deno.test({
   fn: () => {
     assert(
       addSlashesToStringForUseInTemplateLiteral(
-        "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, ... 123456789 !'§$%&/()=?",
+        "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, ... 123456789 !'§$%&/()=?@∞…–-±*+'#",
       ) ===
-        "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, ... 123456789 !'§$%&/()=?",
+        "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, ... 123456789 !'§$%&/()=?@∞…–-±*+'#",
     );
   },
 });
 
 Deno.test({
   name:
-    "`addSlashesToStringForUseInTemplateLiteral` escapes all occurences of backticks in a string by a backslash",
+    "`addSlashesToStringForUseInTemplateLiteral` escapes all unescaped occurences of backticks in a string by a backslash",
   fn: () => {
     assert(
-      addSlashesToStringForUseInTemplateLiteral("abc`def`ghi") ===
-        "abc\\`def\\`ghi",
+      addSlashesToStringForUseInTemplateLiteral("abc\\`def`ghi`jkl") ===
+        "abc\\`def\\`ghi\\`jkl",
     );
   },
 });
 
 Deno.test({
   name:
-    "`addSlashesToStringForUseInTemplateLiteral` doesn't escape already backslash-escaped occurences of backticks in a string",
+    "`addSlashesToStringForUseInTemplateLiteral` escapes all occurences of unescaped interpolation placeholders in a string by a backslash",
   fn: () => {
     assert(
-      addSlashesToStringForUseInTemplateLiteral("abc\\`def`ghi") ===
-        "abc\\`def\\`ghi",
-    );
-  },
-});
-
-Deno.test({
-  name:
-    "`addSlashesToStringForUseInTemplateLiteral` escapes all occurences of interpolation placeholders in a string by a backslash",
-  fn: () => {
-    assert(
-      addSlashesToStringForUseInTemplateLiteral("abc${def}ghi") ===
-        "abc\\${def}ghi",
-    );
-  },
-});
-
-Deno.test({
-  name:
-    "`addSlashesToStringForUseInTemplateLiteral` doesn't escape already backslash-escaped occurences of interpolation placeholders in a string",
-  fn: () => {
-    assert(
-      addSlashesToStringForUseInTemplateLiteral("abc${def}\\${ghi}") ===
-        "abc\\${def}\\${ghi}",
+      addSlashesToStringForUseInTemplateLiteral("abc${def}\\${ghi}${jkl}") ===
+        "abc\\${def}\\${ghi}\\${jkl}",
     );
   },
 });
