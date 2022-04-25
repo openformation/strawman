@@ -1,10 +1,10 @@
 const REPLACEMENTS = [
   {
-    match: /(?<!\\)`/,
+    match: /(?<!\\)`/g,
     replace: "\\`",
   },
   {
-    match: /(?<!\\)\${/,
+    match: /(?<!\\)\${/g,
     replace: "\\${",
   },
 ];
