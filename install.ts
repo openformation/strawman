@@ -1,35 +1,49 @@
+/**
+ * strawman - A Deno-based service virtualization solution
+ * Copyright (C) 2022 Open Formation GmbH
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 import { parse } from "https://deno.land/std@0.136.0/flags/mod.ts";
 import { red } from "https://deno.land/std@0.136.0/fmt/colors.ts";
 
-/*
- * Prompt for a response
- */
-async function prompt(message = "") {
-  const buf = new Uint8Array(1024);
-  await Deno.stdout.write(new TextEncoder().encode(message + ": "));
-  const n = <number> await Deno.stdin.read(buf);
-  return new TextDecoder().decode(buf.subarray(0, n)).trim();
-}
+const VERSION_META_URL = "https://cdn.deno.land/strawman/meta/versions.json";
 
-export async function checkVersion(version: string): Promise<string> {
+export async function checkVersion(desiredVersion: string): Promise<string> {
   console.log("Looking up latest version...");
 
-  const versionMetaUrl = "https://cdn.deno.land/strawman/meta/versions.json";
-  const { latest, versions } = await (await fetch(versionMetaUrl)).json();
+  const { latest: latestVersion, versions: availableVersions } =
+    await (await fetch(VERSION_META_URL)).json();
 
-  if (version === "latest") {
-    version = latest;
-  } else if (!versions.includes(version)) {
-    version = "v" + version;
-    if (!versions.includes(version)) {
-      console.log(`${red("error")}: version(${version}) not found!`);
+  if (desiredVersion === "latest") {
+    desiredVersion = latestVersion;
+  } else if (!availableVersions.includes(desiredVersion)) {
+    desiredVersion = "v" + desiredVersion;
 
-      const promptForListAvailable = await prompt(
+    if (!availableVersions.includes(desiredVersion)) {
+      console.log(`${red("error")}: version(${desiredVersion}) not found!`);
+
+      const shouldListAvailableVersions = prompt(
         "List available? [y/n (y = yes, n = no)] ",
       );
-      if (["y", "Y", "yes", "Yes"].includes(promptForListAvailable)) {
-        for (const release of versions) {
-          console.log(release, latest === release ? "(latest)" : "");
+
+      if (
+        ["y", "yes"].includes(shouldListAvailableVersions?.toLowerCase() ?? "")
+      ) {
+        for (const release of availableVersions) {
+          console.log(release, latestVersion === release ? "(latest)" : "");
         }
       }
 
@@ -37,7 +51,7 @@ export async function checkVersion(version: string): Promise<string> {
     }
   }
 
-  return version;
+  return desiredVersion;
 }
 
 export async function install(
@@ -59,7 +73,7 @@ export async function install(
       "-f",
       `https://deno.land/x/strawman@${version}/modules/strawman-cli/cli.ts`,
     ],
-    stdout: "null",
+    stdout: "inherit",
     stderr: "inherit",
   });
 
