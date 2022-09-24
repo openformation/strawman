@@ -58,7 +58,7 @@ Options:
                         in. Strawman will attempt to create this directory if
                         it does not exist yet. (defaults to: ./snapshots)
   -e, --enable-editing  Strawman will watch for changes in the snapshot 
-                        directory and update the its service virtualization
+                        directory and update its service virtualization
                         accordingly
 
 Examples:
