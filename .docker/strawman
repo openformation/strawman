@@ -1,5 +1,18 @@
 #!/usr/bin/env bash
 
+if [[ -z "$USER_ID" ]]; then
+    echo "strawman needs your local user id. Please make sure to define the environment variable 'export USER_ID=$(id -u)'" 1>&2
+    exit 1
+fi
+
+
+if [[ -z "$GROUP_ID" ]]; then
+    echo "strawman needs your local group id. Please make sure to define the environment variable 'export GROUP_ID=$(id -g)'" 1>&2
+    exit 1
+fi
+
+STRAWMAN_USERNAME=strawman
+
 STRAWMAN_DIR=/app
 
 STRAWMAN_PORT=${STRAWMAN_PORT:"8080"}
@@ -10,7 +23,12 @@ STRAWMAN_DENO_PERMISSIONS=${STRAWMAN_DENO_PERMISSIONS:="--allow-net --allow-read
 
 cd $STRAWMAN_DIR
 
-chown $(id -u):$(id -g) -R $STRAWMAN_WORKSPACE_DIR
+addgroup --gid ${GROUP_ID} $STRAWMAN_USERNAME >/dev/null || true
+adduser --disabled-password --gecos '' --uid ${USER_ID} --gid ${GROUP_ID} $STRAWMAN_USERNAME >/dev/null || true
+
+mkdir -p $STRAWMAN_SNAPSHOT_DIR
+chown $USER_ID:$GROUP_ID -R $STRAWMAN_WORKSPACE_DIR
 
 args="$@"
-deno run $STRAWMAN_DENO_PERMISSIONS modules/strawman-cli/cli.ts $args -s $STRAWMAN_SNAPSHOT_DIR
+
+su - $STRAWMAN_USERNAME -c "cd $STRAWMAN_DIR && deno run $STRAWMAN_DENO_PERMISSIONS modules/strawman-cli/cli.ts $args -s $STRAWMAN_SNAPSHOT_DIR"

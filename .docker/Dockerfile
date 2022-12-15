@@ -1,4 +1,4 @@
-FROM denoland/deno:1.25.4
+FROM denoland/deno:1.28.3
 
 COPY . /app
 COPY .docker/strawman /usr/local/bin/strawman
