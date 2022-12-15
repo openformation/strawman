@@ -41,7 +41,7 @@ export const createStrategy = <M extends Record<string, unknown>>(
     },
     set: (alternativeKey: keyof M) => {
       if (!alternativeKeys.includes(alternativeKey as string)) {
-        throw new Error(`Unknown alternative: ${alternativeKey}`);
+        throw new Error(`Unknown alternative: ${String(alternativeKey)}`);
       }
 
       alternativeKeyRef.current = alternativeKey;
